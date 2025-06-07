@@ -64,3 +64,54 @@ export function initializeState(number) {
 export function getCurrentState() {
   return [...allUnitSquares]; // Return a copy
 }
+
+export function decomposeFlat(flatLeaderId) {
+  // Find all squares with this flatLeaderId
+  const flatSquares = allUnitSquares.filter(square => 
+    square.groupLeaderId === flatLeaderId && square.grouping === 'flat'
+  );
+  
+  if (flatSquares.length !== 100) {
+    console.warn(`Expected 100 squares for flat ${flatLeaderId}, found ${flatSquares.length}`);
+    return false;
+  }
+  
+  // Convert flat to 10 rods
+  for (let rodIndex = 0; rodIndex < 10; rodIndex++) {
+    const rodStartIndex = rodIndex * 10;
+    const rodLeaderId = flatSquares[rodStartIndex].id; // First square in each rod becomes leader
+    
+    // Update the 10 squares that form this rod
+    for (let unitIndex = 0; unitIndex < 10; unitIndex++) {
+      const squareIndex = rodStartIndex + unitIndex;
+      const square = flatSquares[squareIndex];
+      
+      square.grouping = 'rod';
+      square.groupLeaderId = rodLeaderId;
+      square.indexInGroup = unitIndex;
+    }
+  }
+  
+  return true;
+}
+
+export function decomposeRod(rodLeaderId) {
+  // Find all squares with this rodLeaderId
+  const rodSquares = allUnitSquares.filter(square => 
+    square.groupLeaderId === rodLeaderId && square.grouping === 'rod'
+  );
+  
+  if (rodSquares.length !== 10) {
+    console.warn(`Expected 10 squares for rod ${rodLeaderId}, found ${rodSquares.length}`);
+    return false;
+  }
+  
+  // Convert rod to 10 individual units
+  rodSquares.forEach(square => {
+    square.grouping = 'unit';
+    square.groupLeaderId = square.id; // Each becomes its own leader
+    square.indexInGroup = 0;
+  });
+  
+  return true;
+}

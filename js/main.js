@@ -1,5 +1,5 @@
 import { setupSVG } from './svgSetup.js';
-import { initializeState, getCurrentState } from './stateManager.js';
+import { initializeState, getCurrentState, decomposeFlat, decomposeRod } from './stateManager.js';
 import { renderSquares } from './renderer.js';
 import { calculateLayout } from './layoutEngine.js';
 import { COLUMN_GAP } from './constants.js';
@@ -32,6 +32,34 @@ document.getElementById('number-input').addEventListener('input', (event) => {
   initializeState(currentNumber);
   updateVisualization();
 });
+
+// Handle square clicks for decomposition
+function handleSquareClick(clickedSquareData) {
+  console.log("handleSquareClick called with:", clickedSquareData);
+  
+  let success = false;
+  
+  if (clickedSquareData.grouping === 'flat') {
+    success = decomposeFlat(clickedSquareData.groupLeaderId);
+    if (success) {
+      console.log(`Successfully decomposed flat ${clickedSquareData.groupLeaderId} into 10 rods`);
+      updateVisualization();
+    }
+  } else if (clickedSquareData.grouping === 'rod') {
+    success = decomposeRod(clickedSquareData.groupLeaderId);
+    if (success) {
+      console.log(`Successfully decomposed rod ${clickedSquareData.groupLeaderId} into 10 units`);
+      updateVisualization();
+    }
+  }
+  
+  if (!success) {
+    console.warn("Decomposition failed for:", clickedSquareData);
+  }
+}
+
+// Expose handleSquareClick globally for renderer to access
+window.handleSquareClick = handleSquareClick;
 
 // Development/debugging functions - expose to global scope
 window.debugD3Regrouping = {

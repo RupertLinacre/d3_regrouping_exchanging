@@ -48,7 +48,13 @@ function performRender(svgGroup, unitSquaresData) {
   // Step 3: Handle entering squares
   const enteringSquares = squares.enter()
     .append("rect")
-    .attr("class", "unit-square")
+    .attr("class", d => {
+      let classes = "unit-square";
+      if (d.grouping === 'flat' || d.grouping === 'rod') {
+        classes += " groupable-element";
+      }
+      return classes;
+    })
     .attr("width", UNIT_SIZE)
     .attr("height", UNIT_SIZE)
     .attr("fill", "steelblue")
@@ -56,10 +62,40 @@ function performRender(svgGroup, unitSquaresData) {
     .attr("stroke-width", 0.5)
     .attr("opacity", 0)
     .attr("x", d => d.targetX)
-    .attr("y", d => d.targetY);
+    .attr("y", d => d.targetY)
+    .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
+    .on("click", function(event, d) {
+      if (d.grouping === 'flat' || d.grouping === 'rod') {
+        console.log(`Clicked square ${d.id}, part of ${d.grouping} with leader ${d.groupLeaderId}`);
+        // Call handler function that will be defined in main.js
+        if (window.handleSquareClick) {
+          window.handleSquareClick(d);
+        }
+      }
+    });
 
   // Step 4: Handle updates (including new squares)
   const allSquares = enteringSquares.merge(squares);
+  
+  // Update classes and click handlers for all squares
+  allSquares
+    .attr("class", d => {
+      let classes = "unit-square";
+      if (d.grouping === 'flat' || d.grouping === 'rod') {
+        classes += " groupable-element";
+      }
+      return classes;
+    })
+    .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
+    .on("click", function(event, d) {
+      if (d.grouping === 'flat' || d.grouping === 'rod') {
+        console.log(`Clicked square ${d.id}, part of ${d.grouping} with leader ${d.groupLeaderId}`);
+        // Call handler function that will be defined in main.js
+        if (window.handleSquareClick) {
+          window.handleSquareClick(d);
+        }
+      }
+    });
   
   // Capture current positions for smooth transitions
   allSquares.each(function(d) {
