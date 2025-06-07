@@ -4,15 +4,53 @@ body {
     margin: 0;
 }
 
+
+/* Enhanced controls styling */
 #controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 20px;
 }
 
+
+/* Enhanced number input styling */
 #number-input {
-    padding: 8px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 1.5em;
+    border: 2px solid #2E8B57;
+    border-radius: 8px;
+    text-align: center;
+    width: 120px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#number-input:focus {
+    outline: none;
+    border-color: #20B2AA;
+    box-shadow: 0 0 0 4px rgba(32, 178, 170, 0.25);
+}
+
+/* Remove spinner arrows for a cleaner look on number input */
+#number-input::-webkit-outer-spin-button,
+#number-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+#number-input[type=number] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+/* Main title styling */
+#main-title {
+    text-align: center;
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #333;
+    margin-top: 10px;
+    margin-bottom: 25px;
 }
 
 #visualization {

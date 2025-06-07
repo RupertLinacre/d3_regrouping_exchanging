@@ -5,12 +5,21 @@ import { calculateLayout } from './layoutEngine.js';
 import { updateTextLabels } from './textDisplay.js';
 import { COLUMN_GAP } from './constants.js';
 
+
 const svgContext = setupSVG();
 console.log("SVG Setup Complete", svgContext);
+const mainTitleElement = document.getElementById('main-title');
+
 
 let currentNumber = parseInt(document.getElementById('number-input').value, 10);
 initializeState(currentNumber);
 console.log("Initial State:", getCurrentState());
+
+function updateMainTitle(number) {
+  if (mainTitleElement) {
+    mainTitleElement.textContent = `Visualisation of the number ${number}`;
+  }
+}
 
 function updateVisualization() {
   let squaresData = getCurrentState();
@@ -23,8 +32,10 @@ function updateVisualization() {
   updateTextLabels(squaresData, svgContext);
 }
 
+
 // Initial render
 updateVisualization();
+updateMainTitle(currentNumber);
 
 // Event listener for input
 document.getElementById('number-input').addEventListener('input', (event) => {
@@ -33,14 +44,15 @@ document.getElementById('number-input').addEventListener('input', (event) => {
   event.target.value = currentNumber; // Update input if clamped
   initializeState(currentNumber);
   updateVisualization();
+  updateMainTitle(currentNumber);
 });
 
 // Handle square clicks for decomposition
 function handleSquareClick(clickedSquareData) {
   console.log("handleSquareClick called with:", clickedSquareData);
-  
+
   let success = false;
-  
+
   if (clickedSquareData.grouping === 'flat') {
     success = decomposeFlat(clickedSquareData.groupLeaderId);
     if (success) {
@@ -54,7 +66,7 @@ function handleSquareClick(clickedSquareData) {
       updateVisualization();
     }
   }
-  
+
   if (!success) {
     console.warn("Decomposition failed for:", clickedSquareData);
   }
@@ -63,9 +75,9 @@ function handleSquareClick(clickedSquareData) {
 // Handle column right-clicks for composition
 function handleColumnRightClick(columnType) {
   console.log(`handleColumnRightClick called with: ${columnType}`);
-  
+
   let success = false;
-  
+
   if (columnType === 'ones') {
     success = composeUnitsToRod();
     if (success) {
@@ -79,7 +91,7 @@ function handleColumnRightClick(columnType) {
       updateVisualization();
     }
   }
-  
+
   if (!success) {
     console.warn(`Composition failed for column: ${columnType}`);
   }
