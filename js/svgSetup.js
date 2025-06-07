@@ -1,4 +1,4 @@
-import { SVG_WIDTH, SVG_HEIGHT, MARGIN, COLUMN_LABELS, COLUMN_GAP } from './constants.js';
+import { SVG_WIDTH, SVG_HEIGHT, MARGIN, COLUMN_LABELS, COLUMN_GAP, COLORS } from './constants.js';
 
 export function setupSVG() {
   const svg = d3.select("#visualization")
@@ -23,8 +23,8 @@ export function setupSVG() {
       .attr("y", 0)
       .attr("width", columnWidth)
       .attr("height", chartHeight)
-      .attr("fill", "#f0f0f0")
-      .attr("stroke", "#ddd");
+      .attr("fill", COLORS.COLUMN_BG)
+      .attr("stroke", COLORS.COLUMN_BORDER);
 
     g.append("text")
       .attr("class", `column-label column-label-${label.toLowerCase()}`)

@@ -1,4 +1,5 @@
 import { digitToWord, expandedValue, digitPhrase } from './utils.js';
+import { COLORS } from './constants.js';
 
 export function updateTextLabels(allUnitSquares, svgContext) {
   // Count conceptual groups
@@ -29,32 +30,36 @@ export function updateTextLabels(allUnitSquares, svgContext) {
     // Add digit
     textGroup.append('text')
       .attr('x', centerX)
-      .attr('y', 20)
+      .attr('y', 25)
       .attr('text-anchor', 'middle')
       .attr('class', 'digit-text')
-      .style('font-size', '24px')
+      .style('font-size', '28px')
       .style('font-weight', 'bold')
-      .style('fill', '#333')
+      .style('font-family', 'system-ui, -apple-system, sans-serif')
+      .style('fill', COLORS.TEXT_PRIMARY)
       .text(digit);
     
     // Add expanded value
     textGroup.append('text')
       .attr('x', centerX)
-      .attr('y', 45)
+      .attr('y', 50)
       .attr('text-anchor', 'middle')
       .attr('class', 'expanded-text')
-      .style('font-size', '16px')
-      .style('fill', '#666')
+      .style('font-size', '18px')
+      .style('font-weight', '500')
+      .style('font-family', 'system-ui, -apple-system, sans-serif')
+      .style('fill', COLORS.TEXT_SECONDARY)
       .text(expanded);
     
     // Add phrase
     textGroup.append('text')
       .attr('x', centerX)
-      .attr('y', 65)
+      .attr('y', 70)
       .attr('text-anchor', 'middle')
       .attr('class', 'phrase-text')
-      .style('font-size', '14px')
-      .style('fill', '#888')
+      .style('font-size', '16px')
+      .style('font-family', 'system-ui, -apple-system, sans-serif')
+      .style('fill', COLORS.TEXT_TERTIARY)
       .text(phrase);
   });
 }

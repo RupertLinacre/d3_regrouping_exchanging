@@ -1,4 +1,4 @@
-import { UNIT_SIZE, ANIMATION_DURATION } from './constants.js';
+import { UNIT_SIZE, ANIMATION_DURATION, COLORS } from './constants.js';
 
 // Track ongoing animations to prevent conflicts
 let isAnimating = false;
@@ -57,13 +57,21 @@ function performRender(svgGroup, unitSquaresData) {
     })
     .attr("width", UNIT_SIZE)
     .attr("height", UNIT_SIZE)
-    .attr("fill", "steelblue")
-    .attr("stroke", "#fff")
-    .attr("stroke-width", 0.5)
+    .attr("fill", COLORS.UNIT_FILL)
+    .attr("stroke", COLORS.UNIT_STROKE)
+    .attr("stroke-width", COLORS.UNIT_STROKE_WIDTH)
     .attr("opacity", 0)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
+    .on("mouseenter", function(event, d) {
+      if (d.grouping === 'flat' || d.grouping === 'rod') {
+        d3.select(this).attr("fill", COLORS.HIGHLIGHT_HOVER);
+      }
+    })
+    .on("mouseleave", function(event, d) {
+      d3.select(this).attr("fill", COLORS.UNIT_FILL);
+    })
     .on("click", function(event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
         console.log(`Clicked square ${d.id}, part of ${d.grouping} with leader ${d.groupLeaderId}`);
