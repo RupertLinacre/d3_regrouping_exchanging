@@ -5,4 +5,5 @@ export const COLUMN_LABELS = ["Hundreds", "Tens", "Ones"];
 export const COLUMN_GAP = 20;
 export const UNIT_SIZE = 10;
 export const LAYOUT_PADDING = 5;
+export const ANIMATION_DURATION = 500;
 // ... more later

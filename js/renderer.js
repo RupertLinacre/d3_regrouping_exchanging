@@ -1,23 +1,113 @@
-import { UNIT_SIZE } from './constants.js';
+import { UNIT_SIZE, ANIMATION_DURATION } from './constants.js';
+
+// Track ongoing animations to prevent conflicts
+let isAnimating = false;
+let pendingUpdate = null;
 
 export function renderSquares(svgGroup, unitSquaresData) {
+  // If currently animating, queue this update
+  if (isAnimating) {
+    pendingUpdate = { svgGroup, unitSquaresData };
+    return;
+  }
+
+  performRender(svgGroup, unitSquaresData);
+}
+
+function performRender(svgGroup, unitSquaresData) {
+  isAnimating = true;
+
   const squares = svgGroup.selectAll(".unit-square")
     .data(unitSquaresData, d => d.id);
 
-  squares.enter()
+  // Step 1: Handle immediate cleanup of any lingering elements
+  svgGroup.selectAll(".unit-square")
+    .filter(function(d) {
+      // Remove any squares that aren't in the new dataset
+      return !unitSquaresData.find(square => square.id === d?.id);
+    })
+    .interrupt()
+    .remove();
+
+  // Step 2: Handle exits first (with immediate removal if interrupted)
+  const exitingSquares = squares.exit();
+  if (!exitingSquares.empty()) {
+    exitingSquares
+      .interrupt()
+      .transition()
+      .duration(ANIMATION_DURATION)
+      .attr("opacity", 0)
+      .attr("transform", "scale(0.1)")
+      .remove()
+      .on("interrupt", function() {
+        // If interrupted, remove immediately
+        d3.select(this).remove();
+      });
+  }
+
+  // Step 3: Handle entering squares
+  const enteringSquares = squares.enter()
     .append("rect")
     .attr("class", "unit-square")
     .attr("width", UNIT_SIZE)
     .attr("height", UNIT_SIZE)
-    .attr("fill", "steelblue") // Temporary color
+    .attr("fill", "steelblue")
     .attr("stroke", "#fff")
     .attr("stroke-width", 0.5)
-    .attr("x", (d, i) => d.targetX) // Will use targetX/Y later
-    .attr("y", (d, i) => d.targetY)
-  .merge(squares) // Apply to updating elements as well
-    // For now, no transition on x,y, just direct set
+    .attr("opacity", 0)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY);
 
-  squares.exit().remove();
+  // Step 4: Handle updates (including new squares)
+  const allSquares = enteringSquares.merge(squares);
+  
+  // Capture current positions for smooth transitions
+  allSquares.each(function(d) {
+    const element = d3.select(this);
+    const currentX = +element.attr('x') || d.targetX;
+    const currentY = +element.attr('y') || d.targetY;
+    
+    // Store current position for transition
+    element
+      .attr('x', currentX)
+      .attr('y', currentY);
+  });
+
+  // Start the main transition
+  const transition = allSquares
+    .transition()
+    .duration(ANIMATION_DURATION)
+    .attr("opacity", 1)
+    .attr("x", d => d.targetX)
+    .attr("y", d => d.targetY)
+    .on("end", function() {
+      // Animation completed
+      onAnimationComplete();
+    })
+    .on("interrupt", function() {
+      // Animation was interrupted
+      onAnimationComplete();
+    });
+
+  // Set a fallback timer in case transition events don't fire
+  setTimeout(() => {
+    onAnimationComplete();
+  }, ANIMATION_DURATION + 100);
+}
+
+function onAnimationComplete() {
+  if (!isAnimating) return; // Already handled
+  
+  isAnimating = false;
+  
+  // Process any pending update
+  if (pendingUpdate) {
+    const { svgGroup, unitSquaresData } = pendingUpdate;
+    pendingUpdate = null;
+    
+    // Use a small delay to ensure DOM is stable
+    setTimeout(() => {
+      performRender(svgGroup, unitSquaresData);
+    }, 10);
+  }
 }
