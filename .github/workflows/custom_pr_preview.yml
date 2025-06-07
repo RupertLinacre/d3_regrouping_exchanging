@@ -1,13 +1,13 @@
-# .github/workflows/custom_pr_preview_no_cleanup.yml
+# .github/workflows/custom_pr_preview.yml
 name: Deploy PR Preview (Custom, No Cleanup)
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened] # Only run on these events
+    types: [opened, synchronize, reopened]
 
 permissions:
-  contents: write      # Needed to checkout code and push to gh-pages branch
-  pull-requests: write # Needed to comment on the PR
+  contents: write
+  pull-requests: write
 
 jobs:
   deploy_preview:
@@ -28,6 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
+          # BASE_WORKSPACE is where 'actions/checkout' checked out 'pr_source' into
           BASE_WORKSPACE: ${{ github.workspace }}
         run: |
           set -e # Exit immediately if a command exits with a non-zero status.
@@ -35,56 +36,86 @@ jobs:
           SOURCE_DIR_PATH="${BASE_WORKSPACE}/pr_source"
           TARGET_PR_DIR_NAME="${PR_NUMBER}"
           GH_PAGES_BRANCH="gh-pages"
-          REPO_CLONE_DIR="repo_for_gh_pages_deploy"
-
-          echo "Deploying PR #${PR_NUMBER} to /${TARGET_PR_DIR_NAME}/ on ${GH_PAGES_BRANCH} branch"
+          REPO_CLONE_DIR_TMP="gh_pages_clone_temp" # Temporary directory for gh-pages clone
 
           REPO_URL="https://${{ github.actor }}:${GH_TOKEN}@github.com/${{ github.repository }}.git"
-          git clone --quiet "$REPO_URL" "$REPO_CLONE_DIR"
-          cd "$REPO_CLONE_DIR"
 
-          if git ls-remote --exit-code --heads origin "${GH_PAGES_BRANCH}"; then
-            git checkout "${GH_PAGES_BRANCH}"
+          echo "Deploying PR #${PR_NUMBER} from ${SOURCE_DIR_PATH} to /${TARGET_PR_DIR_NAME}/ on ${GH_PAGES_BRANCH} branch of ${{ github.repository }}"
+
+          # Clean slate for clone directory
+          rm -rf "${REPO_CLONE_DIR_TMP}"
+
+          echo "Trying to clone branch ${GH_PAGES_BRANCH}..."
+          if git clone --quiet --branch "${GH_PAGES_BRANCH}" --depth 1 "$REPO_URL" "${REPO_CLONE_DIR_TMP}"; then
+              cd "${REPO_CLONE_DIR_TMP}"
+              echo "Successfully cloned existing ${GH_PAGES_BRANCH} branch."
+              # Ensure git user is set for this repo, even if global is set.
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
           else
-            echo "Branch ${GH_PAGES_BRANCH} does not exist. Creating an orphaned one."
-            git checkout --orphan "${GH_PAGES_BRANCH}"
-            git rm -rf .
-            touch .nojekyll
-            git add .nojekyll
-            git commit -m "Create ${GH_PAGES_BRANCH} branch and add .nojekyll"
-            # An initial push here ensures the branch exists for subsequent operations if it was just created.
-            git push origin "${GH_PAGES_BRANCH}"
+              echo "Branch ${GH_PAGES_BRANCH} does not exist or clone failed. Creating it from scratch."
+              mkdir -p "${REPO_CLONE_DIR_TMP}"
+              cd "${REPO_CLONE_DIR_TMP}"
+              git init -b "${GH_PAGES_BRANCH}"
+              git remote add origin "$REPO_URL"
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+
+              echo "Adding .nojekyll for new ${GH_PAGES_BRANCH} branch."
+              touch .nojekyll
+              git add .nojekyll
+              # This initial commit is for .nojekyll on a new branch.
+              # If it's not a brand new branch but was empty, this might not be needed
+              # if .nojekyll is already part of the PR files being deployed at root (it's not).
+              # It's safer to have this for a truly new branch.
+              git commit -m "Create ${GH_PAGES_BRANCH} and add .nojekyll"
+              # Push this initial commit to create the branch on remote.
+              # This push is only if the branch is brand new.
+              git push -u origin "${GH_PAGES_BRANCH}"
           fi
 
+          # We are now inside REPO_CLONE_DIR_TMP, on the gh-pages branch.
+
+          # Ensure target PR directory exists within the gh-pages clone
           mkdir -p "${TARGET_PR_DIR_NAME}"
 
-          # Clear out existing contents of the target PR directory for a clean deploy
-          # This ensures that if files are removed in the PR, they are removed from the preview.
-          find "${TARGET_PR_DIR_NAME}/." -mindepth 1 -delete
+          # Use rsync to copy files from PR source to target PR directory on gh-pages
+          # --delete will remove files in TARGET_PR_DIR_NAME that are not in SOURCE_DIR_PATH
+          # --exclude='.git' to prevent copying any .git folder from source (critical fix)
+          # --exclude='.github' to prevent deploying workflow files themselves into the preview
+          echo "Syncing files from ${SOURCE_DIR_PATH}/ to ${TARGET_PR_DIR_NAME}/"
+          rsync -av --delete --exclude='.git' --exclude='.github' "${SOURCE_DIR_PATH}/" "${TARGET_PR_DIR_NAME}/"
 
-          cp -a "${SOURCE_DIR_PATH}/." "${TARGET_PR_DIR_NAME}/"
-
+          # Stage changes for the PR directory
           git add "${TARGET_PR_DIR_NAME}"
+
           if git diff --staged --quiet; then
             echo "No changes to deploy for PR #${PR_NUMBER} in /${TARGET_PR_DIR_NAME}."
           else
             git commit -m "Deploy preview for PR #${PR_NUMBER} to /${TARGET_PR_DIR_NAME}"
+            # No force push needed typically, as we are adding/updating specific subdirectories.
             git push origin "${GH_PAGES_BRANCH}"
             echo "Preview for PR #${PR_NUMBER} deployed to /${TARGET_PR_DIR_NAME}/ on ${GH_PAGES_BRANCH}"
           fi
 
+          # Go back to the original workspace directory and clean up the temporary clone
           cd "${BASE_WORKSPACE}"
-          rm -rf "$REPO_CLONE_DIR"
+          rm -rf "${REPO_CLONE_DIR_TMP}"
 
       - name: Post or Update Preview Link Comment on PR
+        working-directory: pr_source # CRITICAL: Run gh commands from where PR code is checked out
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
-          PREVIEW_URL: "https://robinlinacre.com/d3_regrouping_exchanging_2/${{ github.event.number }}/"
+          # Dynamically construct PREVIEW_URL based on the repository name
+          PREVIEW_URL: "https://robinlinacre.com/${{ github.event.repository.name }}/${{ github.event.number }}/"
         run: |
+          set -e # Exit on error
           COMMENT_MARKER_STATIC="<!-- PR Preview Link (custom action) -->"
           COMMENT_BODY="${COMMENT_MARKER_STATIC}\nPreview for PR #${PR_NUMBER} is available at: [${PREVIEW_URL}](${PREVIEW_URL})"
 
+          # Find existing comment ID using gh cli and jq
+          # The `|| echo ""` part prevents the script from failing if jq returns no results or an error
           EXISTING_COMMENT_ID=$(gh pr view "${PR_NUMBER}" --json comments --jq '.comments[] | select(.body | contains("'"${COMMENT_MARKER_STATIC}"'")) | .id' || echo "")
 
           if [ -z "$EXISTING_COMMENT_ID" ]; then
