@@ -5,7 +5,7 @@ export const COLUMN_LABELS = ["Hundreds", "Tens", "Ones"];
 export const COLUMN_GAP = 25;
 export const UNIT_SIZE = 12;
 export const LAYOUT_PADDING = 8;
-export const ANIMATION_DURATION = 400;
+export const ANIMATION_DURATION = 800;
 
 // Color scheme
 export const COLORS = {
