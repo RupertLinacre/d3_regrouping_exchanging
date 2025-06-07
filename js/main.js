@@ -2,6 +2,7 @@ import { setupSVG } from './svgSetup.js';
 import { initializeState, getCurrentState, decomposeFlat, decomposeRod, composeUnitsToRod, composeRodsToFlat } from './stateManager.js';
 import { renderSquares } from './renderer.js';
 import { calculateLayout } from './layoutEngine.js';
+import { updateTextLabels } from './textDisplay.js';
 import { COLUMN_GAP } from './constants.js';
 
 const svgContext = setupSVG();
@@ -19,6 +20,7 @@ function updateVisualization() {
 
   calculateLayout(squaresData, svgContext.columnWidth, svgContext.chartHeight, onesColumnX);
   renderSquares(svgContext.g, squaresData);
+  updateTextLabels(squaresData, svgContext);
 }
 
 // Initial render
