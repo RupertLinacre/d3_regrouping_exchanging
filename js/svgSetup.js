@@ -34,14 +34,14 @@ export function setupSVG() {
       .attr("dominant-baseline", "middle")
       .text(label);
   });
-  
+
   // Placeholder for column text info
 
   COLUMN_LABELS.forEach((label, i) => {
-     const xPos = i * (columnWidth + COLUMN_GAP);
-     g.append("g")
-        .attr("class", `column-text-group column-text-${label.toLowerCase()}`)
-        .attr("transform", `translate(${xPos}, 0)`);
+    const xPos = i * (columnWidth + COLUMN_GAP);
+    g.append("g")
+      .attr("class", `column-text-group column-text-${label.toLowerCase()}`)
+      .attr("transform", `translate(${xPos}, 0)`);
   });
 
   // Add a group for the sum equation display
@@ -49,7 +49,7 @@ export function setupSVG() {
 
   // Add right-click listeners to column backgrounds for composition
   g.select(".column-bg.column-ones")
-    .on("contextmenu", function(event) {
+    .on("contextmenu", function (event) {
       event.preventDefault();
       console.log("Right-clicked Ones column");
       if (window.handleColumnRightClick) {
@@ -58,7 +58,7 @@ export function setupSVG() {
     });
 
   g.select(".column-bg.column-tens")
-    .on("contextmenu", function(event) {
+    .on("contextmenu", function (event) {
       event.preventDefault();
       console.log("Right-clicked Tens column");
       if (window.handleColumnRightClick) {
