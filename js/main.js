@@ -1,2 +1,4 @@
-// D3 Regrouping Visualizer - Main Entry Point
-console.log('D3 Regrouping Visualizer loaded');
+import { setupSVG } from './svgSetup.js';
+
+const svgContext = setupSVG();
+console.log("SVG Setup Complete", svgContext);
