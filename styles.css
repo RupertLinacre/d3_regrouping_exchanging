@@ -1,0 +1,22 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
+}
+
+#controls {
+    margin-bottom: 20px;
+}
+
+#number-input {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#visualization {
+    border: 2px solid #333;
+    min-height: 400px;
+    width: 100%;
+}
