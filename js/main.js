@@ -1,5 +1,5 @@
 import { setupSVG } from './svgSetup.js';
-import { initializeState, getCurrentState, decomposeFlat, decomposeRod } from './stateManager.js';
+import { initializeState, getCurrentState, decomposeFlat, decomposeRod, composeUnitsToRod, composeRodsToFlat } from './stateManager.js';
 import { renderSquares } from './renderer.js';
 import { calculateLayout } from './layoutEngine.js';
 import { COLUMN_GAP } from './constants.js';
@@ -58,8 +58,34 @@ function handleSquareClick(clickedSquareData) {
   }
 }
 
-// Expose handleSquareClick globally for renderer to access
+// Handle column right-clicks for composition
+function handleColumnRightClick(columnType) {
+  console.log(`handleColumnRightClick called with: ${columnType}`);
+  
+  let success = false;
+  
+  if (columnType === 'ones') {
+    success = composeUnitsToRod();
+    if (success) {
+      console.log("Successfully composed 10 units into a rod");
+      updateVisualization();
+    }
+  } else if (columnType === 'tens') {
+    success = composeRodsToFlat();
+    if (success) {
+      console.log("Successfully composed 10 rods into a flat");
+      updateVisualization();
+    }
+  }
+  
+  if (!success) {
+    console.warn(`Composition failed for column: ${columnType}`);
+  }
+}
+
+// Expose functions globally for renderer and svgSetup to access
 window.handleSquareClick = handleSquareClick;
+window.handleColumnRightClick = handleColumnRightClick;
 
 // Development/debugging functions - expose to global scope
 window.debugD3Regrouping = {

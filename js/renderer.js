@@ -72,6 +72,21 @@ function performRender(svgGroup, unitSquaresData) {
           window.handleSquareClick(d);
         }
       }
+    })
+    .on("contextmenu", function(event, d) {
+      event.preventDefault();
+      // Determine which column this square is in based on its grouping
+      let columnType = null;
+      if (d.grouping === 'unit') {
+        columnType = 'ones';
+      } else if (d.grouping === 'rod') {
+        columnType = 'tens';
+      }
+      
+      if (columnType && window.handleColumnRightClick) {
+        console.log(`Right-clicked square ${d.id} in ${columnType} column`);
+        window.handleColumnRightClick(columnType);
+      }
     });
 
   // Step 4: Handle updates (including new squares)
@@ -94,6 +109,21 @@ function performRender(svgGroup, unitSquaresData) {
         if (window.handleSquareClick) {
           window.handleSquareClick(d);
         }
+      }
+    })
+    .on("contextmenu", function(event, d) {
+      event.preventDefault();
+      // Determine which column this square is in based on its grouping
+      let columnType = null;
+      if (d.grouping === 'unit') {
+        columnType = 'ones';
+      } else if (d.grouping === 'rod') {
+        columnType = 'tens';
+      }
+      
+      if (columnType && window.handleColumnRightClick) {
+        console.log(`Right-clicked square ${d.id} in ${columnType} column`);
+        window.handleColumnRightClick(columnType);
       }
     });
   

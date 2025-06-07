@@ -43,5 +43,24 @@ export function setupSVG() {
         .attr("transform", `translate(${xPos}, 0)`);
   });
 
+  // Add right-click listeners to column backgrounds for composition
+  g.select(".column-bg.column-ones")
+    .on("contextmenu", function(event) {
+      event.preventDefault();
+      console.log("Right-clicked Ones column");
+      if (window.handleColumnRightClick) {
+        window.handleColumnRightClick('ones');
+      }
+    });
+
+  g.select(".column-bg.column-tens")
+    .on("contextmenu", function(event) {
+      event.preventDefault();
+      console.log("Right-clicked Tens column");
+      if (window.handleColumnRightClick) {
+        window.handleColumnRightClick('tens');
+      }
+    });
+
   return { svg, g, chartWidth, chartHeight, columnWidth };
 }

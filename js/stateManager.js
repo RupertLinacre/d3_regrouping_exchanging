@@ -115,3 +115,75 @@ export function decomposeRod(rodLeaderId) {
   
   return true;
 }
+
+export function composeUnitsToRod() {
+  // Get all current 'unit' squares
+  const unitSquares = allUnitSquares.filter(square => square.grouping === 'unit');
+  
+  if (unitSquares.length < 10) {
+    console.warn(`Need at least 10 units to compose a rod, found ${unitSquares.length}`);
+    return false;
+  }
+  
+  // Select the first 10 units (by originalValueIndex for consistency)
+  const selectedUnits = unitSquares
+    .sort((a, b) => a.originalValueIndex - b.originalValueIndex)
+    .slice(0, 10);
+  
+  // Use the first unit's ID as the new rod leader
+  const newRodLeaderId = selectedUnits[0].id;
+  
+  // Convert these 10 units to a rod
+  selectedUnits.forEach((square, index) => {
+    square.grouping = 'rod';
+    square.groupLeaderId = newRodLeaderId;
+    square.indexInGroup = index;
+  });
+  
+  return true;
+}
+
+export function composeRodsToFlat() {
+  // Identify all current conceptual rods (group by groupLeaderId where grouping === 'rod')
+  const rodGroups = {};
+  allUnitSquares
+    .filter(square => square.grouping === 'rod')
+    .forEach(square => {
+      if (!rodGroups[square.groupLeaderId]) {
+        rodGroups[square.groupLeaderId] = [];
+      }
+      rodGroups[square.groupLeaderId].push(square);
+    });
+  
+  const rodLeaderIds = Object.keys(rodGroups);
+  
+  if (rodLeaderIds.length < 10) {
+    console.warn(`Need at least 10 rods to compose a flat, found ${rodLeaderIds.length}`);
+    return false;
+  }
+  
+  // Select the first 10 rods (100 unit squares total)
+  const selectedRodIds = rodLeaderIds.slice(0, 10);
+  const selectedSquares = [];
+  
+  selectedRodIds.forEach(rodId => {
+    selectedSquares.push(...rodGroups[rodId]);
+  });
+  
+  if (selectedSquares.length !== 100) {
+    console.warn(`Expected 100 squares for flat composition, found ${selectedSquares.length}`);
+    return false;
+  }
+  
+  // Use the first square's ID as the new flat leader
+  const newFlatLeaderId = selectedSquares[0].id;
+  
+  // Convert these 100 squares to a flat
+  selectedSquares.forEach((square, index) => {
+    square.grouping = 'flat';
+    square.groupLeaderId = newFlatLeaderId;
+    square.indexInGroup = index;
+  });
+  
+  return true;
+}
