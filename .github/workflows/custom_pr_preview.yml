@@ -1,0 +1,96 @@
+# .github/workflows/custom_pr_preview_no_cleanup.yml
+name: Deploy PR Preview (Custom, No Cleanup)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened] # Only run on these events
+
+permissions:
+  contents: write      # Needed to checkout code and push to gh-pages branch
+  pull-requests: write # Needed to comment on the PR
+
+jobs:
+  deploy_preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR Code (Source)
+        uses: actions/checkout@v4
+        with:
+          path: pr_source # Checkout PR's code into 'pr_source' directory
+
+      - name: Setup Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy to gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          BASE_WORKSPACE: ${{ github.workspace }}
+        run: |
+          set -e # Exit immediately if a command exits with a non-zero status.
+
+          SOURCE_DIR_PATH="${BASE_WORKSPACE}/pr_source"
+          TARGET_PR_DIR_NAME="${PR_NUMBER}"
+          GH_PAGES_BRANCH="gh-pages"
+          REPO_CLONE_DIR="repo_for_gh_pages_deploy"
+
+          echo "Deploying PR #${PR_NUMBER} to /${TARGET_PR_DIR_NAME}/ on ${GH_PAGES_BRANCH} branch"
+
+          REPO_URL="https://${{ github.actor }}:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git clone --quiet "$REPO_URL" "$REPO_CLONE_DIR"
+          cd "$REPO_CLONE_DIR"
+
+          if git ls-remote --exit-code --heads origin "${GH_PAGES_BRANCH}"; then
+            git checkout "${GH_PAGES_BRANCH}"
+          else
+            echo "Branch ${GH_PAGES_BRANCH} does not exist. Creating an orphaned one."
+            git checkout --orphan "${GH_PAGES_BRANCH}"
+            git rm -rf .
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Create ${GH_PAGES_BRANCH} branch and add .nojekyll"
+            # An initial push here ensures the branch exists for subsequent operations if it was just created.
+            git push origin "${GH_PAGES_BRANCH}"
+          fi
+
+          mkdir -p "${TARGET_PR_DIR_NAME}"
+
+          # Clear out existing contents of the target PR directory for a clean deploy
+          # This ensures that if files are removed in the PR, they are removed from the preview.
+          find "${TARGET_PR_DIR_NAME}/." -mindepth 1 -delete
+
+          cp -a "${SOURCE_DIR_PATH}/." "${TARGET_PR_DIR_NAME}/"
+
+          git add "${TARGET_PR_DIR_NAME}"
+          if git diff --staged --quiet; then
+            echo "No changes to deploy for PR #${PR_NUMBER} in /${TARGET_PR_DIR_NAME}."
+          else
+            git commit -m "Deploy preview for PR #${PR_NUMBER} to /${TARGET_PR_DIR_NAME}"
+            git push origin "${GH_PAGES_BRANCH}"
+            echo "Preview for PR #${PR_NUMBER} deployed to /${TARGET_PR_DIR_NAME}/ on ${GH_PAGES_BRANCH}"
+          fi
+
+          cd "${BASE_WORKSPACE}"
+          rm -rf "$REPO_CLONE_DIR"
+
+      - name: Post or Update Preview Link Comment on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          PREVIEW_URL: "https://robinlinacre.com/d3_regrouping_exchanging_2/${{ github.event.number }}/"
+        run: |
+          COMMENT_MARKER_STATIC="<!-- PR Preview Link (custom action) -->"
+          COMMENT_BODY="${COMMENT_MARKER_STATIC}\nPreview for PR #${PR_NUMBER} is available at: [${PREVIEW_URL}](${PREVIEW_URL})"
+
+          EXISTING_COMMENT_ID=$(gh pr view "${PR_NUMBER}" --json comments --jq '.comments[] | select(.body | contains("'"${COMMENT_MARKER_STATIC}"'")) | .id' || echo "")
+
+          if [ -z "$EXISTING_COMMENT_ID" ]; then
+            gh pr comment "${PR_NUMBER}" --body "${COMMENT_BODY}"
+            echo "Posted new preview comment."
+          else
+            gh pr comment "${PR_NUMBER}" --edit "${EXISTING_COMMENT_ID}" --body "${COMMENT_BODY}"
+            echo "Updated existing preview comment."
+          fi
