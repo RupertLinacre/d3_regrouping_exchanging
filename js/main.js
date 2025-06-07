@@ -29,7 +29,7 @@ function updateVisualization() {
 
   calculateLayout(squaresData, svgContext.columnWidth, svgContext.chartHeight, onesColumnX);
   renderSquares(svgContext.g, squaresData);
-  updateTextLabels(squaresData, svgContext);
+  updateTextLabels(squaresData, svgContext, currentNumber);
 }
 
 

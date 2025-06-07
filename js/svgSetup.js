@@ -36,12 +36,16 @@ export function setupSVG() {
   });
   
   // Placeholder for column text info
+
   COLUMN_LABELS.forEach((label, i) => {
      const xPos = i * (columnWidth + COLUMN_GAP);
      g.append("g")
         .attr("class", `column-text-group column-text-${label.toLowerCase()}`)
         .attr("transform", `translate(${xPos}, 0)`);
   });
+
+  // Add a group for the sum equation display
+  g.append("g").attr("class", "sum-equation-group");
 
   // Add right-click listeners to column backgrounds for composition
   g.select(".column-bg.column-ones")

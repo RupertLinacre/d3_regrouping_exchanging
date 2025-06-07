@@ -1,7 +1,7 @@
-import { digitToWord, expandedValue } from './utils.js'; // Ensure digitToWord is imported
-import { COLORS } from './constants.js';
+import { digitToWord, expandedValue } from './utils.js';
+import { COLORS, COLUMN_GAP } from './constants.js';
 
-export function updateTextLabels(allUnitSquares, svgContext) {
+export function updateTextLabels(allUnitSquares, svgContext, totalNumber) {
   // Count conceptual groups (this part remains the same)
   const counts = countConceptualGroups(allUnitSquares);
 
@@ -12,7 +12,7 @@ export function updateTextLabels(allUnitSquares, svgContext) {
     { name: 'ones', count: counts.units, place: 'ones' }
   ];
 
-  columns.forEach((column) => { // Removed 'index' as it's not used in new logic
+  columns.forEach((column) => {
     const textGroup = d3.select(`.column-text-${column.name}`);
 
     // Clear previous text
@@ -61,6 +61,55 @@ export function updateTextLabels(allUnitSquares, svgContext) {
       .style('fill', COLORS.TEXT_PRIMARY) // Black/dark color
       .text(line2Text);
   });
+  // Add sum equation display above columns
+  updateSumDisplay(counts, totalNumber, svgContext);
+}
+
+function updateSumDisplay(counts, totalNumber, svgContext) {
+  const sumGroup = svgContext.g.select(".sum-equation-group");
+  sumGroup.selectAll('text').remove(); // Clear previous sum text
+
+  const { columnWidth, chartHeight } = svgContext;
+
+  const expandedH = counts.flats * 100;
+  const expandedT = counts.rods * 10;
+  const expandedO = counts.units; // ones value
+
+  // Place sum equation below the column labels
+  // The column labels are at y = chartHeight + MARGIN.bottom / 2 - 10
+  // We'll place the sum equation a bit below that
+  const sumYPosition = chartHeight + 80; // 10px more vertical space below labels
+  const fontSize = "28px";
+
+  // Define x-coordinates for the center of each element
+  const xHundredsVal = columnWidth / 2;
+  const xPlus1 = columnWidth + COLUMN_GAP / 2;
+  const xTensVal = columnWidth + COLUMN_GAP + columnWidth / 2;
+  const xPlus2 = columnWidth + COLUMN_GAP + columnWidth + COLUMN_GAP / 2;
+  const xOnesVal = columnWidth + COLUMN_GAP + columnWidth + COLUMN_GAP + columnWidth / 2;
+  const xEquals = xOnesVal + (columnWidth / 2) + (COLUMN_GAP / 2);
+  const xTotal = xEquals + (COLUMN_GAP / 2) + 60; // Further right for visibility
+
+  // Helper to append text elements
+  const addText = (x, textContent, anchor = 'middle') => {
+    sumGroup.append('text')
+      .attr('x', x)
+      .attr('y', sumYPosition)
+      .attr('text-anchor', anchor)
+      .style('font-size', fontSize)
+      .style('font-family', 'system-ui, -apple-system, sans-serif')
+      .style('fill', COLORS.TEXT_PRIMARY)
+      .text(textContent);
+  };
+
+  // Add elements to the sum equation
+  addText(xHundredsVal, expandedH);
+  addText(xPlus1, '+');
+  addText(xTensVal, expandedT);
+  addText(xPlus2, '+');
+  addText(xOnesVal, expandedO);
+  addText(xEquals, '=', 'start');
+  addText(xTotal, totalNumber, 'start');
 }
 
 function countConceptualGroups(allUnitSquares) {
