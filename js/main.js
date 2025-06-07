@@ -1,5 +1,8 @@
 import { setupSVG } from './svgSetup.js';
 import { initializeState, getCurrentState } from './stateManager.js';
+import { renderSquares } from './renderer.js';
+import { calculateLayout } from './layoutEngine.js';
+import { COLUMN_GAP } from './constants.js';
 
 const svgContext = setupSVG();
 console.log("SVG Setup Complete", svgContext);
@@ -7,3 +10,25 @@ console.log("SVG Setup Complete", svgContext);
 let currentNumber = parseInt(document.getElementById('number-input').value, 10);
 initializeState(currentNumber);
 console.log("Initial State:", getCurrentState());
+
+function updateVisualization() {
+  let squaresData = getCurrentState();
+  // Calculate onesColumnXOffset based on svgContext.columnWidth and COLUMN_GAP
+  const onesColumnIndex = 2; // 0:Hundreds, 1:Tens, 2:Ones
+  const onesColumnX = onesColumnIndex * (svgContext.columnWidth + COLUMN_GAP); // COLUMN_GAP from constants
+
+  calculateLayout(squaresData, svgContext.columnWidth, svgContext.chartHeight, onesColumnX);
+  renderSquares(svgContext.g, squaresData);
+}
+
+// Initial render
+updateVisualization();
+
+// Event listener for input
+document.getElementById('number-input').addEventListener('input', (event) => {
+  currentNumber = parseInt(event.target.value, 10) || 0;
+  currentNumber = Math.max(0, Math.min(999, currentNumber)); // Clamp
+  event.target.value = currentNumber; // Update input if clamped
+  initializeState(currentNumber);
+  updateVisualization();
+});
