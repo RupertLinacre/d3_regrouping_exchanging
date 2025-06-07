@@ -4,33 +4,33 @@ import { COLORS } from './constants.js';
 export function updateTextLabels(allUnitSquares, svgContext) {
   // Count conceptual groups
   const counts = countConceptualGroups(allUnitSquares);
-  
+
   // Column information
   const columns = [
     { name: 'hundreds', count: counts.flats, place: 'hundreds' },
     { name: 'tens', count: counts.rods, place: 'tens' },
     { name: 'ones', count: counts.units, place: 'ones' }
   ];
-  
+
   columns.forEach((column, index) => {
     const textGroup = d3.select(`.column-text-${column.name}`);
-    
+
     // Clear previous text
     textGroup.selectAll('text').remove();
-    
+
     // Generate text content
     const digit = column.count.toString();
     const expanded = expandedValue(column.count, column.place).toString();
     const phrase = digitPhrase(column.count, column.place);
-    
+
     // Position text elements within the column
     const columnWidth = svgContext.columnWidth;
     const centerX = columnWidth / 2;
-    
-    // Add digit
+
+    // Add digit above the grey box
     textGroup.append('text')
       .attr('x', centerX)
-      .attr('y', 25)
+      .attr('y', -15) // Move above the box
       .attr('text-anchor', 'middle')
       .attr('class', 'digit-text')
       .style('font-size', '28px')
@@ -38,7 +38,7 @@ export function updateTextLabels(allUnitSquares, svgContext) {
       .style('font-family', 'system-ui, -apple-system, sans-serif')
       .style('fill', COLORS.TEXT_PRIMARY)
       .text(digit);
-    
+
     // Add expanded value
     textGroup.append('text')
       .attr('x', centerX)
@@ -50,7 +50,7 @@ export function updateTextLabels(allUnitSquares, svgContext) {
       .style('font-family', 'system-ui, -apple-system, sans-serif')
       .style('fill', COLORS.TEXT_SECONDARY)
       .text(expanded);
-    
+
     // Add phrase
     textGroup.append('text')
       .attr('x', centerX)
@@ -69,7 +69,7 @@ function countConceptualGroups(allUnitSquares) {
   const flatGroups = {};
   const rodGroups = {};
   let units = 0;
-  
+
   allUnitSquares.forEach(square => {
     if (square.grouping === 'flat') {
       if (!flatGroups[square.groupLeaderId]) {
@@ -83,7 +83,7 @@ function countConceptualGroups(allUnitSquares) {
       units++;
     }
   });
-  
+
   return {
     flats: Object.keys(flatGroups).length,
     rods: Object.keys(rodGroups).length,
