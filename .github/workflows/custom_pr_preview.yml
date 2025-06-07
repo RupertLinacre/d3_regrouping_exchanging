@@ -122,12 +122,12 @@ jobs:
         run: |
           set -e
           COMMENT_MARKER_STATIC="<!-- PR Preview Link (custom action) -->"
-          COMMENT_BODY="${COMMENT_MARKER_STATIC}\nPreview for PR #${PR_NUMBER} is available at: [${PREVIEW_URL}](${PREVIEW_URL})"
+          COMMENT_BODY="${COMMENT_MARKER_STATIC}\n\nPreview for PR #${PR_NUMBER} is available at: [${PREVIEW_URL}](${PREVIEW_URL})"
           EXISTING_COMMENT_ID=$(gh pr view "${PR_NUMBER}" --json comments --jq '.comments[] | select(.body | contains("'"${COMMENT_MARKER_STATIC}"'")) | .id' || echo "")
           if [ -z "$EXISTING_COMMENT_ID" ]; then
-            gh pr comment "${PR_NUMBER}" --body "${COMMENT_BODY}"
+            gh pr comment "${PR_NUMBER}" --body "$COMMENT_BODY"
             echo "Posted new preview comment."
           else
-            gh pr comment "${PR_NUMBER}" --edit "${EXISTING_COMMENT_ID}" --body "${COMMENT_BODY}"
+            gh pr comment "${PR_NUMBER}" --edit "$EXISTING_COMMENT_ID" --body "$COMMENT_BODY"
             echo "Updated existing preview comment."
           fi
