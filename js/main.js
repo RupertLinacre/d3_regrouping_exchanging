@@ -32,3 +32,12 @@ document.getElementById('number-input').addEventListener('input', (event) => {
   initializeState(currentNumber);
   updateVisualization();
 });
+
+// Development/debugging functions - expose to global scope
+window.debugD3Regrouping = {
+  getCurrentState,
+  initializeState,
+  updateVisualization,
+  svgContext,
+  getCurrentNumber: () => currentNumber
+};
