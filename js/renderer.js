@@ -1,4 +1,4 @@
-import { UNIT_SIZE, ANIMATION_DURATION, COLORS } from './constants.js';
+import { UNIT_SIZE, ANIMATION_DURATION, COLORS, STAGGER_DELAY } from './constants.js';
 
 // Track ongoing animations to prevent conflicts
 let isAnimating = false;
@@ -35,9 +35,9 @@ function performRender(svgGroup, unitSquaresData) {
     exitingSquares
       .interrupt()
       .transition()
-      .duration(ANIMATION_DURATION)
+      .duration(ANIMATION_DURATION / 2)
       .attr("opacity", 0)
-      .attr("transform", "scale(0.1)")
+      .attr("transform", "scale(0)")
       .remove()
       .on("interrupt", function () {
         // If interrupted, remove immediately
@@ -63,6 +63,7 @@ function performRender(svgGroup, unitSquaresData) {
     .attr("opacity", 0)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
+    .attr("transform", "scale(0)")
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
     .on("mouseenter", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
@@ -146,16 +147,21 @@ function performRender(svgGroup, unitSquaresData) {
   // Start the main transition
   const transition = allSquares
     .transition()
+    .delay(function (d) {
+      if (d.isRecentlyRegrouped) {
+        return (d.indexInGroup || 0) * STAGGER_DELAY;
+      }
+      return 0;
+    })
     .duration(ANIMATION_DURATION)
     .attr("opacity", 1)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
+    .attr("transform", "scale(1)")
     .on("end", function () {
-      // Animation completed
       onAnimationComplete();
     })
     .on("interrupt", function () {
-      // Animation was interrupted
       onAnimationComplete();
     });
 

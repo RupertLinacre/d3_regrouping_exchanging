@@ -7,6 +7,9 @@ export const UNIT_SIZE = 12;
 export const LAYOUT_PADDING = 8;
 export const ANIMATION_DURATION = 800;
 
+// Stagger delay for regrouping animations (ms)
+export const STAGGER_DELAY = 125;
+
 // Color scheme
 export const COLORS = {
   UNIT_FILL: "#2E8B57", // Sea green - pedagogically appropriate base-10 block color

@@ -146,6 +146,7 @@ export function decomposeRod() {
 }
 
 export function composeUnitsToRod() {
+  resetRegroupedFlags();
   // Get all current 'unit' squares
   const unitSquares = allUnitSquares.filter(square => square.grouping === 'unit');
 
@@ -167,6 +168,7 @@ export function composeUnitsToRod() {
     square.grouping = 'rod';
     square.groupLeaderId = newRodLeaderId;
     square.indexInGroup = index;
+    square.isRecentlyRegrouped = true;
   });
 
   giveNewDisplayOrder(selectedUnits);
@@ -174,6 +176,7 @@ export function composeUnitsToRod() {
 }
 
 export function composeRodsToFlat() {
+  resetRegroupedFlags();
   // Identify all current conceptual rods (group by groupLeaderId where grouping === 'rod')
   const rodGroups = {};
   allUnitSquares
@@ -220,6 +223,7 @@ export function composeRodsToFlat() {
     square.grouping = 'flat';
     square.groupLeaderId = newFlatLeaderId;
     square.indexInGroup = index;
+    square.isRecentlyRegrouped = true;
   });
 
   giveNewDisplayOrder(selectedSquares);
