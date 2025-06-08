@@ -41,9 +41,19 @@ function layoutUnitsInColumn(unitSquares, columnX, columnWidth, chartHeight) {
     const row = Math.floor(i / unitsPerRow);
     const col = i % unitsPerRow;
 
+    // --- colour: alternate every 10 units ---
+    const groupIndex = Math.floor(i / 10); // 0–9, 10–19, 20–29, …
+    square.colorCategory = (groupIndex % 2 === 0)
+      ? 'base' // dark for even groups
+      : 'highlightGroup'; // light for odd groups
+
     square.targetX = columnX + LAYOUT_PADDING + col * (UNIT_SIZE + gap);
     square.targetY = chartHeight - LAYOUT_PADDING - UNIT_SIZE - row * (UNIT_SIZE + gap);
   });
+  // Remove any old color logic for units (e.g., if totalUnitsInColumn >= 10 ...)
+
+  // --- REMOVE DUPLICATE/OLD FUNCTION DEFINITIONS BELOW ---
+  // (If any duplicate layoutUnitsInColumn or layoutRodsInColumn exist below, delete them)
 }
 
 function layoutRodsInColumn(rodSquares, columnX, columnWidth, chartHeight) {
@@ -73,15 +83,23 @@ function layoutRodsInColumn(rodSquares, columnX, columnWidth, chartHeight) {
     const row = Math.floor(rodIndex / rodsPerRow);
     const col = rodIndex % rodsPerRow;
 
+    // --- colour: alternate every 10 rods ---
+    const groupIndex = Math.floor(rodIndex / 10); // 0–9 rods, 10–19 rods, …
+    const currentRodColorCategory = (groupIndex % 2 === 0)
+      ? 'base'
+      : 'highlightGroup';
+
     const rodX = columnX + LAYOUT_PADDING + col * (rodWidth + gap);
     const rodY = chartHeight - LAYOUT_PADDING - rodHeight - row * (rodHeight + gap);
 
     // Position each unit square within this rod
     rodGroups[rodId].forEach(square => {
+      square.colorCategory = currentRodColorCategory;
       square.targetX = rodX;
       square.targetY = rodY + square.indexInGroup * UNIT_SIZE;
     });
   });
+  // Remove any old color logic for rods (e.g., if ((rodIndex % 10) === 9) ...)
 }
 
 function layoutFlatsInColumn(flatSquares, columnX, columnWidth, chartHeight) {

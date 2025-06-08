@@ -46,6 +46,17 @@ function performRender(svgGroup, unitSquaresData) {
   }
 
   // Step 3: Handle entering squares
+  const getFillColor = d => {
+    if (d.grouping === 'unit' || d.grouping === 'rod') {
+      if (d.colorCategory === 'highlightGroup') {
+        return COLORS.UNIT_FILL_HIGHLIGHT_GROUP;
+      } else {
+        return COLORS.UNIT_FILL_BASE;
+      }
+    }
+    return COLORS.UNIT_FILL_BASE;
+  };
+
   const enteringSquares = squares.enter()
     .append("rect")
     .attr("class", d => {
@@ -57,7 +68,7 @@ function performRender(svgGroup, unitSquaresData) {
     })
     .attr("width", UNIT_SIZE)
     .attr("height", UNIT_SIZE)
-    .attr("fill", COLORS.UNIT_FILL)
+    .attr("fill", getFillColor)
     .attr("stroke", COLORS.UNIT_STROKE)
     .attr("stroke-width", COLORS.UNIT_STROKE_WIDTH)
     .attr("opacity", 0)
@@ -71,7 +82,7 @@ function performRender(svgGroup, unitSquaresData) {
       }
     })
     .on("mouseleave", function (event, d) {
-      d3.select(this).attr("fill", COLORS.UNIT_FILL);
+      d3.select(this).attr("fill", getFillColor(d));
     })
     .on("click", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
@@ -108,6 +119,7 @@ function performRender(svgGroup, unitSquaresData) {
       }
       return classes;
     })
+    .attr("fill", getFillColor)
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
     .on("click", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {

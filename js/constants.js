@@ -11,8 +11,10 @@ export const ANIMATION_DURATION = 800;
 export const STAGGER_DELAY = 125;
 
 // Color scheme
+// For d3.color, we need to use d3 in this file. Import d3 if not already available in the global scope where this is used.
 export const COLORS = {
-  UNIT_FILL: "#2E8B57", // Sea green - pedagogically appropriate base-10 block color
+  UNIT_FILL_BASE: "#2E8B57", // dark green
+  UNIT_FILL_HIGHLIGHT_GROUP: (typeof d3 !== 'undefined' ? d3.color("#2E8B57").brighter(1.5).toString() : "#6FCF97"), // light green, fallback if d3 not available
   UNIT_STROKE: "#FFFFFF", // White grid lines for clear internal structure
   UNIT_STROKE_WIDTH: 1,
   COLUMN_BG: "#F8F9FA", // Light gray column backgrounds
