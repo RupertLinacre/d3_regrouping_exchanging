@@ -22,7 +22,7 @@ function performRender(svgGroup, unitSquaresData) {
 
   // Step 1: Handle immediate cleanup of any lingering elements
   svgGroup.selectAll(".unit-square")
-    .filter(function(d) {
+    .filter(function (d) {
       // Remove any squares that aren't in the new dataset
       return !unitSquaresData.find(square => square.id === d?.id);
     })
@@ -39,7 +39,7 @@ function performRender(svgGroup, unitSquaresData) {
       .attr("opacity", 0)
       .attr("transform", "scale(0.1)")
       .remove()
-      .on("interrupt", function() {
+      .on("interrupt", function () {
         // If interrupted, remove immediately
         d3.select(this).remove();
       });
@@ -64,24 +64,24 @@ function performRender(svgGroup, unitSquaresData) {
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
-    .on("mouseenter", function(event, d) {
+    .on("mouseenter", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
         d3.select(this).attr("fill", COLORS.HIGHLIGHT_HOVER);
       }
     })
-    .on("mouseleave", function(event, d) {
+    .on("mouseleave", function (event, d) {
       d3.select(this).attr("fill", COLORS.UNIT_FILL);
     })
-    .on("click", function(event, d) {
+    .on("click", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
         console.log(`Clicked square ${d.id}, part of ${d.grouping} with leader ${d.groupLeaderId}`);
         // Call handler function that will be defined in main.js
         if (window.handleSquareClick) {
-          window.handleSquareClick(d);
+          window.handleSquareClick();
         }
       }
     })
-    .on("contextmenu", function(event, d) {
+    .on("contextmenu", function (event, d) {
       event.preventDefault();
       // Determine which column this square is in based on its grouping
       let columnType = null;
@@ -90,7 +90,7 @@ function performRender(svgGroup, unitSquaresData) {
       } else if (d.grouping === 'rod') {
         columnType = 'tens';
       }
-      
+
       if (columnType && window.handleColumnRightClick) {
         console.log(`Right-clicked square ${d.id} in ${columnType} column`);
         window.handleColumnRightClick(columnType);
@@ -99,7 +99,7 @@ function performRender(svgGroup, unitSquaresData) {
 
   // Step 4: Handle updates (including new squares)
   const allSquares = enteringSquares.merge(squares);
-  
+
   // Update classes and click handlers for all squares
   allSquares
     .attr("class", d => {
@@ -110,16 +110,16 @@ function performRender(svgGroup, unitSquaresData) {
       return classes;
     })
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
-    .on("click", function(event, d) {
+    .on("click", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
         console.log(`Clicked square ${d.id}, part of ${d.grouping} with leader ${d.groupLeaderId}`);
         // Call handler function that will be defined in main.js
         if (window.handleSquareClick) {
-          window.handleSquareClick(d);
+          window.handleSquareClick();
         }
       }
     })
-    .on("contextmenu", function(event, d) {
+    .on("contextmenu", function (event, d) {
       event.preventDefault();
       // Determine which column this square is in based on its grouping
       let columnType = null;
@@ -128,19 +128,19 @@ function performRender(svgGroup, unitSquaresData) {
       } else if (d.grouping === 'rod') {
         columnType = 'tens';
       }
-      
+
       if (columnType && window.handleColumnRightClick) {
         console.log(`Right-clicked square ${d.id} in ${columnType} column`);
         window.handleColumnRightClick(columnType);
       }
     });
-  
+
   // Capture current positions for smooth transitions
-  allSquares.each(function(d) {
+  allSquares.each(function (d) {
     const element = d3.select(this);
     const currentX = +element.attr('x') || d.targetX;
     const currentY = +element.attr('y') || d.targetY;
-    
+
     // Store current position for transition
     element
       .attr('x', currentX)
@@ -154,11 +154,11 @@ function performRender(svgGroup, unitSquaresData) {
     .attr("opacity", 1)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
-    .on("end", function() {
+    .on("end", function () {
       // Animation completed
       onAnimationComplete();
     })
-    .on("interrupt", function() {
+    .on("interrupt", function () {
       // Animation was interrupted
       onAnimationComplete();
     });
@@ -171,14 +171,14 @@ function performRender(svgGroup, unitSquaresData) {
 
 function onAnimationComplete() {
   if (!isAnimating) return; // Already handled
-  
+
   isAnimating = false;
-  
+
   // Process any pending update
   if (pendingUpdate) {
     const { svgGroup, unitSquaresData } = pendingUpdate;
     pendingUpdate = null;
-    
+
     // Use a small delay to ensure DOM is stable
     setTimeout(() => {
       performRender(svgGroup, unitSquaresData);

@@ -48,28 +48,9 @@ document.getElementById('number-input').addEventListener('input', (event) => {
 });
 
 // Handle square clicks for decomposition
-function handleSquareClick(clickedSquareData) {
-  console.log("handleSquareClick called with:", clickedSquareData);
-
-  let success = false;
-
-  if (clickedSquareData.grouping === 'flat') {
-    success = decomposeFlat(clickedSquareData.groupLeaderId);
-    if (success) {
-      console.log(`Successfully decomposed flat ${clickedSquareData.groupLeaderId} into 10 rods`);
-      updateVisualization();
-    }
-  } else if (clickedSquareData.grouping === 'rod') {
-    success = decomposeRod(clickedSquareData.groupLeaderId);
-    if (success) {
-      console.log(`Successfully decomposed rod ${clickedSquareData.groupLeaderId} into 10 units`);
-      updateVisualization();
-    }
-  }
-
-  if (!success) {
-    console.warn("Decomposition failed for:", clickedSquareData);
-  }
+function handleSquareClick() {
+  let success = decomposeFlat() || decomposeRod(); // whichever exists
+  if (success) updateVisualization();
 }
 
 // Handle column right-clicks for composition
