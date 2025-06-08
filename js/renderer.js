@@ -74,10 +74,8 @@ function performRender(svgGroup, unitSquaresData) {
     })
     .on("click", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
-        console.log(`Clicked square ${d.id}, part of ${d.grouping} with leader ${d.groupLeaderId}`);
-        // Call handler function that will be defined in main.js
         if (window.handleSquareClick) {
-          window.handleSquareClick();
+          window.handleSquareClick(d);      // <-- pass the datum!
         }
       }
     })
@@ -112,10 +110,8 @@ function performRender(svgGroup, unitSquaresData) {
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
     .on("click", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
-        console.log(`Clicked square ${d.id}, part of ${d.grouping} with leader ${d.groupLeaderId}`);
-        // Call handler function that will be defined in main.js
         if (window.handleSquareClick) {
-          window.handleSquareClick();
+          window.handleSquareClick(d);      // <-- pass the datum!
         }
       }
     })

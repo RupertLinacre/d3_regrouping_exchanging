@@ -48,8 +48,16 @@ document.getElementById('number-input').addEventListener('input', (event) => {
 });
 
 // Handle square clicks for decomposition
-function handleSquareClick() {
-  let success = decomposeFlat() || decomposeRod(); // whichever exists
+function handleSquareClick(squareData) {
+  if (!squareData) return;           // safety
+
+  let success = false;
+  if (squareData.grouping === 'flat') {
+    success = decomposeFlat();       // always decompose *a* flat
+  } else if (squareData.grouping === 'rod') {
+    success = decomposeRod();        // always decompose *a* rod
+  }
+
   if (success) updateVisualization();
 }
 
