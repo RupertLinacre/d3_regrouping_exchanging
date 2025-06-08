@@ -119,7 +119,6 @@ function performRender(svgGroup, unitSquaresData) {
       }
       return classes;
     })
-    .attr("fill", getFillColor)
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
     .on("click", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
@@ -143,6 +142,14 @@ function performRender(svgGroup, unitSquaresData) {
         window.handleColumnRightClick(columnType);
       }
     });
+  // Interpolate from the element’s current fill to its new fill
+  function fillTween(d) {
+    // 'this' will be the <rect> DOM node
+    const current = d3.select(this).attr("fill") || COLORS.UNIT_FILL_BASE;
+    const target = getFillColor(d);
+    const interp = d3.interpolateRgb(current, target);
+    return t => interp(t);
+  }
 
   // Capture current positions for smooth transitions
   allSquares.each(function (d) {
@@ -166,6 +173,7 @@ function performRender(svgGroup, unitSquaresData) {
       return 0;
     })
     .duration(ANIMATION_DURATION)
+    .attrTween("fill", fillTween)
     .attr("opacity", 1)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
