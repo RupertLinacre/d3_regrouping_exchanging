@@ -10,14 +10,16 @@ function giveNewDisplayOrder(squares) {
 // Generates the core data for each unit square
 function createUnitSquare(id) {
   return {
-    id: `unit-${id}`,        // Unique ID for D3 keying
-    originalValueIndex: id, // Its index if all units were in a line 0 to N-1
+    id: `unit-${id}`,
+    originalValueIndex: id,
     displayOrder: id,
-    grouping: 'unit',     // 'unit', 'rod', 'flat'
-    groupLeaderId: `unit-${id}`, // ID of the first unit in its current group
-    indexInGroup: 0,      // e.g., 0-9 for unit in rod, 0-99 for unit in flat
-    targetX: 0,           // Target X calculated by layoutEngine
-    targetY: 0            // Target Y calculated by layoutEngine
+    grouping: 'unit',
+    groupLeaderId: `unit-${id}`,
+    indexInGroup: 0,
+    targetX: 0,
+    targetY: 0,
+    isRecentlyRegrouped: false,
+    animationStaggerIndex: 0
   };
 }
 
@@ -63,6 +65,7 @@ function applyCanonicalGrouping(squares) {
 function resetRegroupedFlags() {
   allUnitSquares.forEach(sq => {
     sq.isRecentlyRegrouped = false;
+    sq.animationStaggerIndex = 0;
   });
 }
 
@@ -111,6 +114,7 @@ export function decomposeFlat() {
   if (flatSquares.length !== 100) return false;
 
   // explode into 10 rods
+  flatSquares.sort((a, b) => a.indexInGroup - b.indexInGroup);
   for (let r = 0; r < 10; r++) {
     const leader = flatSquares[r * 10].id;
     for (let i = 0; i < 10; i++) {
@@ -119,6 +123,7 @@ export function decomposeFlat() {
       sq.groupLeaderId = leader;
       sq.indexInGroup = i;
       sq.isRecentlyRegrouped = true;
+      sq.animationStaggerIndex = r;
     }
   }
   giveNewDisplayOrder(flatSquares);
@@ -135,13 +140,15 @@ export function decomposeRod() {
   );
   if (rodSquares.length !== 10) return false;
 
-  rodSquares.forEach(sq => {
+  rodSquares.sort((a, b) => a.indexInGroup - b.indexInGroup);
+  rodSquares.forEach((sq, idx) => {
     sq.isRecentlyRegrouped = true;
+    sq.animationStaggerIndex = idx;
     sq.grouping = 'unit';
     sq.groupLeaderId = sq.id;
     sq.indexInGroup = 0;
   });
-  giveNewDisplayOrder(rodSquares);   // <-- key line
+  giveNewDisplayOrder(rodSquares);
   return true;
 }
 
@@ -169,6 +176,7 @@ export function composeUnitsToRod() {
     square.groupLeaderId = newRodLeaderId;
     square.indexInGroup = index;
     square.isRecentlyRegrouped = true;
+    square.animationStaggerIndex = index;
   });
 
   giveNewDisplayOrder(selectedUnits);
@@ -218,14 +226,24 @@ export function composeRodsToFlat() {
   // Use the first square's ID as the new flat leader
   const newFlatLeaderId = selectedSquares[0].id;
 
-  // Convert these 100 squares to a flat
-  selectedSquares.forEach((square, index) => {
+  // For animation staggering, sort rods by displayOrder (descending), then assign stagger index by rod
+  const rodGroupsArr = selectedRodIds.map((rodId, rodStaggerIndex) => {
+    const group = rodGroups[rodId].slice();
+    group.sort((a, b) => a.indexInGroup - b.indexInGroup);
+    group.forEach(sq => {
+      sq.animationStaggerIndex = rodStaggerIndex;
+    });
+    return group;
+  });
+  const sortedSquares = rodGroupsArr.flat();
+  sortedSquares.forEach((square, index) => {
     square.grouping = 'flat';
     square.groupLeaderId = newFlatLeaderId;
     square.indexInGroup = index;
     square.isRecentlyRegrouped = true;
+    // animationStaggerIndex already set
   });
 
-  giveNewDisplayOrder(selectedSquares);
+  giveNewDisplayOrder(sortedSquares);
   return true;
 }

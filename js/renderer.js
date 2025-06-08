@@ -149,7 +149,7 @@ function performRender(svgGroup, unitSquaresData) {
     .transition()
     .delay(function (d) {
       if (d.isRecentlyRegrouped) {
-        return (d.indexInGroup || 0) * STAGGER_DELAY;
+        return (d.animationStaggerIndex || 0) * STAGGER_DELAY;
       }
       return 0;
     })
