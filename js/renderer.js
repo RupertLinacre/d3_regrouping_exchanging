@@ -1,4 +1,4 @@
-import { UNIT_SIZE, ANIMATION_DURATION, COLORS, STAGGER_DELAY } from './constants.js';
+import { UNIT_SIZE, ANIMATION_DURATION, COLORS, STAGGER_DELAY } from './constants.js?v=20260513e';
 
 // Track ongoing animations so newer regrouping operations can restart from
 // the current on-screen positions instead of waiting for older transitions.

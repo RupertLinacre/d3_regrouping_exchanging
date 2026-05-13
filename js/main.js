@@ -1,9 +1,9 @@
-import { setupSVG } from './svgSetup.js?v=20260513c';
+import { setupSVG } from './svgSetup.js?v=20260513e';
 import { initializeState, getCurrentState, decomposeFlat, decomposeRod, composeUnitsToRod, composeRodsToFlat } from './stateManager.js';
-import { renderSquares } from './renderer.js?v=20260513b';
-import { calculateLayout } from './layoutEngine.js';
-import { updateTextLabels } from './textDisplay.js?v=20260513b';
-import { COLUMN_GAP } from './constants.js';
+import { renderSquares } from './renderer.js?v=20260513e';
+import { calculateLayout } from './layoutEngine.js?v=20260513e';
+import { updateTextLabels } from './textDisplay.js?v=20260513e';
+import { COLUMN_GAP } from './constants.js?v=20260513e';
 
 
 const svgContext = setupSVG();

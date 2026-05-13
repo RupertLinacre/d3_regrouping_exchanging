@@ -1,5 +1,5 @@
 import { digitToWord, expandedValue } from './utils.js';
-import { COLORS, COLUMN_GAP } from './constants.js';
+import { COLORS, COLUMN_GAP } from './constants.js?v=20260513e';
 
 export function updateTextLabels(allUnitSquares, svgContext, totalNumber) {
   // Count conceptual groups (this part remains the same)

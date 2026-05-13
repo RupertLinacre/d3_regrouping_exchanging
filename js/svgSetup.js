@@ -1,4 +1,4 @@
-import { SVG_WIDTH, SVG_HEIGHT, MARGIN, COLUMN_LABELS, COLUMN_GAP, COLORS } from './constants.js?v=20260513';
+import { SVG_WIDTH, SVG_HEIGHT, MARGIN, COLUMN_LABELS, COLUMN_GAP, COLORS } from './constants.js?v=20260513e';
 
 export function setupSVG() {
   const svg = d3.select("#visualization")
@@ -81,21 +81,21 @@ function addTransferControls(g, columnWidth, chartHeight) {
     addTransferButton(g, {
       x: boundary.x,
       y: chartHeight / 2 - 22,
-      label: '>',
+      label: '➡️',
       action: boundary.forwardAction
     });
 
     addTransferButton(g, {
       x: boundary.x,
       y: chartHeight / 2 + 22,
-      label: '<',
+      label: '⬅️',
       action: boundary.backwardAction
     });
   });
 }
 
 function addTransferButton(g, { x, y, label, action }) {
-  const buttonSize = 30;
+  const buttonSize = 34;
   const button = g.append("g")
     .attr("class", `transfer-button transfer-${action}`)
     .attr("transform", `translate(${x - buttonSize / 2}, ${y - buttonSize / 2})`)
@@ -126,7 +126,7 @@ function addTransferButton(g, { x, y, label, action }) {
     .attr("y", buttonSize / 2)
     .attr("text-anchor", "middle")
     .attr("dominant-baseline", "central")
-    .style("font-size", "20px")
+    .style("font-size", "19px")
     .style("font-weight", "700")
     .style("font-family", "system-ui, -apple-system, sans-serif")
     .style("fill", COLORS.TEXT_PRIMARY)
