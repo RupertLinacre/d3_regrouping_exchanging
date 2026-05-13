@@ -61,7 +61,3 @@ body {
     width: 100%;
     min-width: 1400px;
 }
-
-.is-animating .unit-square {
-    pointer-events: none;
-}

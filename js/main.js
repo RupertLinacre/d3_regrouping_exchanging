@@ -1,6 +1,6 @@
-import { setupSVG } from './svgSetup.js?v=20260513';
+import { setupSVG } from './svgSetup.js?v=20260513c';
 import { initializeState, getCurrentState, decomposeFlat, decomposeRod, composeUnitsToRod, composeRodsToFlat } from './stateManager.js';
-import { renderSquares, isAnimationInProgress } from './renderer.js';
+import { renderSquares } from './renderer.js?v=20260513b';
 import { calculateLayout } from './layoutEngine.js';
 import { updateTextLabels } from './textDisplay.js?v=20260513b';
 import { COLUMN_GAP } from './constants.js';
@@ -50,7 +50,6 @@ document.getElementById('number-input').addEventListener('input', (event) => {
 // Handle square clicks for decomposition
 function handleSquareClick(squareData) {
   if (!squareData) return;           // safety
-  if (isAnimationInProgress()) return;
 
   let success = false;
   if (squareData.grouping === 'flat') {
@@ -65,7 +64,6 @@ function handleSquareClick(squareData) {
 // Handle column right-clicks for composition
 function handleColumnRightClick(columnType) {
   console.log(`handleColumnRightClick called with: ${columnType}`);
-  if (isAnimationInProgress()) return;
 
   let success = false;
 
@@ -88,9 +86,26 @@ function handleColumnRightClick(columnType) {
   }
 }
 
+function handleTransferButtonClick(action) {
+  let success = false;
+
+  if (action === 'decompose-hundreds') {
+    success = decomposeFlat();
+  } else if (action === 'compose-hundreds') {
+    success = composeRodsToFlat();
+  } else if (action === 'decompose-tens') {
+    success = decomposeRod();
+  } else if (action === 'compose-tens') {
+    success = composeUnitsToRod();
+  }
+
+  if (success) updateVisualization();
+}
+
 // Expose functions globally for renderer and svgSetup to access
 window.handleSquareClick = handleSquareClick;
 window.handleColumnRightClick = handleColumnRightClick;
+window.handleTransferButtonClick = handleTransferButtonClick;
 
 // Development/debugging functions - expose to global scope
 window.debugD3Regrouping = {

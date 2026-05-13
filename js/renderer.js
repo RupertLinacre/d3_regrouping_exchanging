@@ -1,8 +1,8 @@
 import { UNIT_SIZE, ANIMATION_DURATION, COLORS, STAGGER_DELAY } from './constants.js';
 
-// Track ongoing animations to prevent conflicts
+// Track ongoing animations so newer regrouping operations can restart from
+// the current on-screen positions instead of waiting for older transitions.
 let isAnimating = false;
-let pendingUpdate = null;
 let activeRenderId = 0;
 
 export function isAnimationInProgress() {
@@ -11,20 +11,10 @@ export function isAnimationInProgress() {
 
 export function renderSquares(svgGroup, unitSquaresData, options = {}) {
   const nextData = unitSquaresData.slice();
-  const shouldInterrupt = options.interrupt === true;
 
-  if (shouldInterrupt && isAnimating) {
-    pendingUpdate = null;
+  if (isAnimating || options.interrupt === true) {
     activeRenderId++;
-    isAnimating = false;
-    svgGroup.classed("is-animating", false);
     svgGroup.selectAll(".unit-square").interrupt();
-  }
-
-  // If currently animating, queue this update
-  if (isAnimating) {
-    pendingUpdate = { svgGroup, unitSquaresData: nextData };
-    return;
   }
 
   performRender(svgGroup, nextData);
@@ -220,15 +210,4 @@ function onAnimationComplete(renderId) {
 
   isAnimating = false;
   d3.selectAll(".is-animating").classed("is-animating", false);
-
-  // Process any pending update
-  if (pendingUpdate) {
-    const { svgGroup, unitSquaresData } = pendingUpdate;
-    pendingUpdate = null;
-
-    // Use a small delay to ensure DOM is stable
-    setTimeout(() => {
-      performRender(svgGroup, unitSquaresData);
-    }, 10);
-  }
 }

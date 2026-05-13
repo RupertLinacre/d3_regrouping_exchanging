@@ -39,6 +39,8 @@ export function setupSVG() {
   // Add a group for the sum equation display
   g.append("g").attr("class", "sum-equation-group");
 
+  addTransferControls(g, columnWidth, chartHeight);
+
   // Add right-click listeners to column backgrounds for composition
   g.select(".column-bg.column-ones")
     .on("contextmenu", function (event) {
@@ -59,4 +61,75 @@ export function setupSVG() {
     });
 
   return { svg, g, chartWidth, chartHeight, columnWidth };
+}
+
+function addTransferControls(g, columnWidth, chartHeight) {
+  const boundaries = [
+    {
+      x: columnWidth + COLUMN_GAP / 2,
+      forwardAction: 'decompose-hundreds',
+      backwardAction: 'compose-hundreds'
+    },
+    {
+      x: 2 * columnWidth + COLUMN_GAP + COLUMN_GAP / 2,
+      forwardAction: 'decompose-tens',
+      backwardAction: 'compose-tens'
+    }
+  ];
+
+  boundaries.forEach(boundary => {
+    addTransferButton(g, {
+      x: boundary.x,
+      y: chartHeight / 2 - 22,
+      label: '>',
+      action: boundary.forwardAction
+    });
+
+    addTransferButton(g, {
+      x: boundary.x,
+      y: chartHeight / 2 + 22,
+      label: '<',
+      action: boundary.backwardAction
+    });
+  });
+}
+
+function addTransferButton(g, { x, y, label, action }) {
+  const buttonSize = 30;
+  const button = g.append("g")
+    .attr("class", `transfer-button transfer-${action}`)
+    .attr("transform", `translate(${x - buttonSize / 2}, ${y - buttonSize / 2})`)
+    .style("cursor", "pointer")
+    .attr("role", "button")
+    .attr("aria-label", action)
+    .on("click", function (event) {
+      event.stopPropagation();
+      if (window.handleTransferButtonClick) {
+        window.handleTransferButtonClick(action);
+      }
+    })
+    .on("contextmenu", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+
+  button.append("rect")
+    .attr("width", buttonSize)
+    .attr("height", buttonSize)
+    .attr("rx", 5)
+    .attr("fill", "#FFFFFF")
+    .attr("stroke", COLORS.UNIT_FILL_BASE)
+    .attr("stroke-width", 2);
+
+  button.append("text")
+    .attr("x", buttonSize / 2)
+    .attr("y", buttonSize / 2)
+    .attr("text-anchor", "middle")
+    .attr("dominant-baseline", "central")
+    .style("font-size", "20px")
+    .style("font-weight", "700")
+    .style("font-family", "system-ui, -apple-system, sans-serif")
+    .style("fill", COLORS.TEXT_PRIMARY)
+    .style("pointer-events", "none")
+    .text(label);
 }
