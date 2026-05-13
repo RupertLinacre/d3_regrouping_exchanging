@@ -1,8 +1,8 @@
-import { setupSVG } from './svgSetup.js';
+import { setupSVG } from './svgSetup.js?v=20260513';
 import { initializeState, getCurrentState, decomposeFlat, decomposeRod, composeUnitsToRod, composeRodsToFlat } from './stateManager.js';
-import { renderSquares } from './renderer.js';
+import { renderSquares, isAnimationInProgress } from './renderer.js';
 import { calculateLayout } from './layoutEngine.js';
-import { updateTextLabels } from './textDisplay.js';
+import { updateTextLabels } from './textDisplay.js?v=20260513b';
 import { COLUMN_GAP } from './constants.js';
 
 
@@ -21,14 +21,14 @@ function updateMainTitle(number) {
   }
 }
 
-function updateVisualization() {
+function updateVisualization(options = {}) {
   let squaresData = getCurrentState();
   // Calculate onesColumnXOffset based on svgContext.columnWidth and COLUMN_GAP
   const onesColumnIndex = 2; // 0:Hundreds, 1:Tens, 2:Ones
   const onesColumnX = onesColumnIndex * (svgContext.columnWidth + COLUMN_GAP); // COLUMN_GAP from constants
 
   calculateLayout(squaresData, svgContext.columnWidth, svgContext.chartHeight, onesColumnX);
-  renderSquares(svgContext.g, squaresData);
+  renderSquares(svgContext.g, squaresData, options);
   updateTextLabels(squaresData, svgContext, currentNumber);
 }
 
@@ -43,19 +43,20 @@ document.getElementById('number-input').addEventListener('input', (event) => {
   currentNumber = Math.max(0, Math.min(999, currentNumber)); // Clamp
   event.target.value = currentNumber; // Update input if clamped
   initializeState(currentNumber);
-  updateVisualization();
+  updateVisualization({ interrupt: true });
   updateMainTitle(currentNumber);
 });
 
 // Handle square clicks for decomposition
 function handleSquareClick(squareData) {
   if (!squareData) return;           // safety
+  if (isAnimationInProgress()) return;
 
   let success = false;
   if (squareData.grouping === 'flat') {
-    success = decomposeFlat();       // always decompose *a* flat
+    success = decomposeFlat(squareData.groupLeaderId);
   } else if (squareData.grouping === 'rod') {
-    success = decomposeRod();        // always decompose *a* rod
+    success = decomposeRod(squareData.groupLeaderId);
   }
 
   if (success) updateVisualization();
@@ -64,6 +65,7 @@ function handleSquareClick(squareData) {
 // Handle column right-clicks for composition
 function handleColumnRightClick(columnType) {
   console.log(`handleColumnRightClick called with: ${columnType}`);
+  if (isAnimationInProgress()) return;
 
   let success = false;
 

@@ -69,24 +69,22 @@ function resetRegroupedFlags() {
   });
 }
 
-function lastRodLeader() {
+function lastGroupLeader(grouping) {
   let max = -1, leader = null;
   allUnitSquares.forEach(sq => {
-    if (sq.grouping === 'rod' && sq.displayOrder > max) {
+    if (sq.grouping === grouping && sq.displayOrder > max) {
       max = sq.displayOrder; leader = sq.groupLeaderId;
     }
   });
   return leader;
 }
 
-function lastFlatLeader() {
-  let max = -1, leader = null;
-  allUnitSquares.forEach(sq => {
-    if (sq.grouping === 'flat' && sq.displayOrder > max) {
-      max = sq.displayOrder; leader = sq.groupLeaderId;
-    }
-  });
-  return leader;
+function getGroupSquares(groupLeaderId, grouping, expectedSize) {
+  const groupSquares = allUnitSquares
+    .filter(sq => sq.groupLeaderId === groupLeaderId && sq.grouping === grouping)
+    .sort((a, b) => a.indexInGroup - b.indexInGroup);
+
+  return groupSquares.length === expectedSize ? groupSquares : null;
 }
 
 export function initializeState(number) {
@@ -103,18 +101,14 @@ export function getCurrentState() {
   return [...allUnitSquares]; // Return a copy
 }
 
-export function decomposeFlat() {
-  const flatLeaderId = lastFlatLeader();
+export function decomposeFlat(flatLeaderId = lastGroupLeader('flat')) {
   if (!flatLeaderId) return false;
 
   resetRegroupedFlags();
-  const flatSquares = allUnitSquares.filter(
-    sq => sq.groupLeaderId === flatLeaderId && sq.grouping === 'flat'
-  );
-  if (flatSquares.length !== 100) return false;
+  const flatSquares = getGroupSquares(flatLeaderId, 'flat', 100);
+  if (!flatSquares) return false;
 
   // explode into 10 rods
-  flatSquares.sort((a, b) => a.indexInGroup - b.indexInGroup);
   for (let r = 0; r < 10; r++) {
     const leader = flatSquares[r * 10].id;
     for (let i = 0; i < 10; i++) {
@@ -130,17 +124,13 @@ export function decomposeFlat() {
   return true;
 }
 
-export function decomposeRod() {
-  const rodLeaderId = lastRodLeader();
+export function decomposeRod(rodLeaderId = lastGroupLeader('rod')) {
   if (!rodLeaderId) return false;
 
   resetRegroupedFlags();
-  const rodSquares = allUnitSquares.filter(
-    sq => sq.groupLeaderId === rodLeaderId && sq.grouping === 'rod'
-  );
-  if (rodSquares.length !== 10) return false;
+  const rodSquares = getGroupSquares(rodLeaderId, 'rod', 10);
+  if (!rodSquares) return false;
 
-  rodSquares.sort((a, b) => a.indexInGroup - b.indexInGroup);
   rodSquares.forEach((sq, idx) => {
     sq.isRecentlyRegrouped = true;
     sq.animationStaggerIndex = idx;
@@ -165,7 +155,8 @@ export function composeUnitsToRod() {
   // select TEN units with the **highest** displayOrder
   const selectedUnits = unitSquares
     .sort((a, b) => b.displayOrder - a.displayOrder)
-    .slice(0, 10);
+    .slice(0, 10)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
 
   // Use the first unit's ID as the new rod leader
   const newRodLeaderId = selectedUnits[0].id;
@@ -211,6 +202,7 @@ export function composeRodsToFlat() {
     })
     .sort((a, b) => b.displayOrder - a.displayOrder)
     .slice(0, 10)
+    .sort((a, b) => a.displayOrder - b.displayOrder)
     .map(item => item.leaderId);
 
   const selectedSquares = [];

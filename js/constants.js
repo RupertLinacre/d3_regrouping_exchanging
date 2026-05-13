@@ -1,6 +1,6 @@
 export const SVG_WIDTH = 1400; // Further increased width to prevent sum equation clipping
 export const SVG_HEIGHT = 630;
-export const MARGIN = { top: 90, right: 150, bottom: 100, left: 20 };
+export const MARGIN = { top: 90, right: 150, bottom: 20, left: 20 };
 export const COLUMN_LABELS = ["Hundreds", "Tens", "Ones"];
 export const COLUMN_GAP = 25;
 export const UNIT_SIZE = 12;

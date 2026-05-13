@@ -3,49 +3,58 @@ import { UNIT_SIZE, ANIMATION_DURATION, COLORS, STAGGER_DELAY } from './constant
 // Track ongoing animations to prevent conflicts
 let isAnimating = false;
 let pendingUpdate = null;
+let activeRenderId = 0;
 
-export function renderSquares(svgGroup, unitSquaresData) {
+export function isAnimationInProgress() {
+  return isAnimating;
+}
+
+export function renderSquares(svgGroup, unitSquaresData, options = {}) {
+  const nextData = unitSquaresData.slice();
+  const shouldInterrupt = options.interrupt === true;
+
+  if (shouldInterrupt && isAnimating) {
+    pendingUpdate = null;
+    activeRenderId++;
+    isAnimating = false;
+    svgGroup.classed("is-animating", false);
+    svgGroup.selectAll(".unit-square").interrupt();
+  }
+
   // If currently animating, queue this update
   if (isAnimating) {
-    pendingUpdate = { svgGroup, unitSquaresData };
+    pendingUpdate = { svgGroup, unitSquaresData: nextData };
     return;
   }
 
-  performRender(svgGroup, unitSquaresData);
+  performRender(svgGroup, nextData);
 }
 
 function performRender(svgGroup, unitSquaresData) {
+  const renderId = ++activeRenderId;
   isAnimating = true;
+  svgGroup.classed("is-animating", true);
 
   const squares = svgGroup.selectAll(".unit-square")
     .data(unitSquaresData, d => d.id);
 
-  // Step 1: Handle immediate cleanup of any lingering elements
-  svgGroup.selectAll(".unit-square")
-    .filter(function (d) {
-      // Remove any squares that aren't in the new dataset
-      return !unitSquaresData.find(square => square.id === d?.id);
-    })
-    .interrupt()
-    .remove();
-
-  // Step 2: Handle exits first (with immediate removal if interrupted)
+  // Step 1: Handle exits.
   const exitingSquares = squares.exit();
+  let exitTransition = null;
   if (!exitingSquares.empty()) {
-    exitingSquares
-      .interrupt()
+    exitTransition = exitingSquares
+      .interrupt("regroup")
       .transition()
-      .duration(ANIMATION_DURATION / 2)
+      .duration(ANIMATION_DURATION * 0.45)
+      .ease(d3.easeCubicInOut)
       .attr("opacity", 0)
-      .attr("transform", "scale(0)")
       .remove()
       .on("interrupt", function () {
-        // If interrupted, remove immediately
         d3.select(this).remove();
       });
   }
 
-  // Step 3: Handle entering squares
+  // Step 2: Handle entering squares.
   const getFillColor = d => {
     if (d.grouping === 'unit' || d.grouping === 'rod') {
       if (d.colorCategory === 'highlightGroup') {
@@ -74,7 +83,7 @@ function performRender(svgGroup, unitSquaresData) {
     .attr("opacity", 0)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
-    .attr("transform", "scale(0)")
+    .attr("transform", null)
     .style("cursor", d => (d.grouping === 'flat' || d.grouping === 'rod') ? "pointer" : "default")
     .on("mouseenter", function (event, d) {
       if (d.grouping === 'flat' || d.grouping === 'rod') {
@@ -107,7 +116,7 @@ function performRender(svgGroup, unitSquaresData) {
       }
     });
 
-  // Step 4: Handle updates (including new squares)
+  // Step 3: Handle updates (including new squares).
   const allSquares = enteringSquares.merge(squares);
 
   // Update classes and click handlers for all squares
@@ -154,16 +163,21 @@ function performRender(svgGroup, unitSquaresData) {
   // Capture current positions for smooth transitions
   allSquares.each(function (d) {
     const element = d3.select(this);
-    const currentX = +element.attr('x') || d.targetX;
-    const currentY = +element.attr('y') || d.targetY;
+    const currentX = Number(element.attr('x'));
+    const currentY = Number(element.attr('y'));
 
     // Store current position for transition
     element
-      .attr('x', currentX)
-      .attr('y', currentY);
+      .attr('x', Number.isFinite(currentX) ? currentX : d.targetX)
+      .attr('y', Number.isFinite(currentY) ? currentY : d.targetY)
+      .attr("transform", null);
   });
 
   // Start the main transition
+  const maxDelay = d3.max(unitSquaresData, d =>
+    d.isRecentlyRegrouped ? (d.animationStaggerIndex || 0) * STAGGER_DELAY : 0
+  ) || 0;
+
   const transition = allSquares
     .transition()
     .delay(function (d) {
@@ -173,28 +187,39 @@ function performRender(svgGroup, unitSquaresData) {
       return 0;
     })
     .duration(ANIMATION_DURATION)
+    .ease(d3.easeCubicInOut)
     .attrTween("fill", fillTween)
     .attr("opacity", 1)
     .attr("x", d => d.targetX)
     .attr("y", d => d.targetY)
-    .attr("transform", "scale(1)")
-    .on("end", function () {
-      onAnimationComplete();
-    })
-    .on("interrupt", function () {
-      onAnimationComplete();
-    });
+    .attr("transform", null);
 
-  // Set a fallback timer in case transition events don't fire
+  const transitionPromises = [];
+  if (!allSquares.empty()) {
+    transitionPromises.push(transition.end().catch(() => undefined));
+  }
+  if (exitTransition) {
+    transitionPromises.push(exitTransition.end().catch(() => undefined));
+  }
+
+  if (transitionPromises.length > 0) {
+    Promise.all(transitionPromises).then(() => onAnimationComplete(renderId));
+  } else {
+    queueMicrotask(() => onAnimationComplete(renderId));
+  }
+
+  // Fallback in case a browser drops transition completion events.
   setTimeout(() => {
-    onAnimationComplete();
-  }, ANIMATION_DURATION + 100);
+    onAnimationComplete(renderId);
+  }, maxDelay + ANIMATION_DURATION + 100);
 }
 
-function onAnimationComplete() {
+function onAnimationComplete(renderId) {
+  if (renderId !== activeRenderId) return;
   if (!isAnimating) return; // Already handled
 
   isAnimating = false;
+  d3.selectAll(".is-animating").classed("is-animating", false);
 
   // Process any pending update
   if (pendingUpdate) {

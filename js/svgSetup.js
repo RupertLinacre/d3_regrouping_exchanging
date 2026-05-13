@@ -1,4 +1,4 @@
-import { SVG_WIDTH, SVG_HEIGHT, MARGIN, COLUMN_LABELS, COLUMN_GAP, COLORS } from './constants.js';
+import { SVG_WIDTH, SVG_HEIGHT, MARGIN, COLUMN_LABELS, COLUMN_GAP, COLORS } from './constants.js?v=20260513';
 
 export function setupSVG() {
   const svg = d3.select("#visualization")
@@ -14,7 +14,7 @@ export function setupSVG() {
 
   const columnWidth = (chartWidth - (COLUMN_GAP * (COLUMN_LABELS.length - 1))) / COLUMN_LABELS.length;
 
-  // Column Backgrounds and Labels
+  // Column backgrounds
   COLUMN_LABELS.forEach((label, i) => {
     const xPos = i * (columnWidth + COLUMN_GAP);
     g.append("rect")
@@ -25,14 +25,6 @@ export function setupSVG() {
       .attr("height", chartHeight)
       .attr("fill", COLORS.COLUMN_BG)
       .attr("stroke", COLORS.COLUMN_BORDER);
-
-    g.append("text")
-      .attr("class", `column-label column-label-${label.toLowerCase()}`)
-      .attr("x", xPos + columnWidth / 2)
-      .attr("y", chartHeight + MARGIN.bottom / 2 - 10) // Position labels below columns
-      .attr("text-anchor", "middle")
-      .attr("dominant-baseline", "middle")
-      .text(label);
   });
 
   // Placeholder for column text info

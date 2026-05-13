@@ -69,40 +69,35 @@ function updateSumDisplay(counts, totalNumber, svgContext) {
   const sumGroup = svgContext.g.select(".sum-equation-group");
   sumGroup.selectAll('text').remove(); // Clear previous sum text
 
-  const { columnWidth, chartHeight } = svgContext;
+  const { columnWidth } = svgContext;
 
   const expandedH = counts.flats * 100;
   const expandedT = counts.rods * 10;
   const expandedO = counts.units; // ones value
 
-  // Place sum equation below the column labels
-  // The column labels are at y = chartHeight + MARGIN.bottom / 2 - 10
-  // We'll place the sum equation a bit below that
-  const sumYPosition = chartHeight + 80; // 10px more vertical space below labels
+  const sumYPosition = -34;
   const fontSize = "28px";
 
-  // Define x-coordinates for the center of each element
   const xHundredsVal = columnWidth / 2;
   const xPlus1 = columnWidth + COLUMN_GAP / 2;
   const xTensVal = columnWidth + COLUMN_GAP + columnWidth / 2;
   const xPlus2 = columnWidth + COLUMN_GAP + columnWidth + COLUMN_GAP / 2;
   const xOnesVal = columnWidth + COLUMN_GAP + columnWidth + COLUMN_GAP + columnWidth / 2;
   const xEquals = xOnesVal + (columnWidth / 2) + (COLUMN_GAP / 2);
-  const xTotal = xEquals + (COLUMN_GAP / 2) + 60; // Further right for visibility
+  const xTotal = xEquals + (COLUMN_GAP / 2) + 60;
 
-  // Helper to append text elements
   const addText = (x, textContent, anchor = 'middle') => {
     sumGroup.append('text')
       .attr('x', x)
       .attr('y', sumYPosition)
       .attr('text-anchor', anchor)
       .style('font-size', fontSize)
+      .style('font-weight', '700')
       .style('font-family', 'system-ui, -apple-system, sans-serif')
       .style('fill', COLORS.TEXT_PRIMARY)
       .text(textContent);
   };
 
-  // Add elements to the sum equation
   addText(xHundredsVal, expandedH);
   addText(xPlus1, '+');
   addText(xTensVal, expandedT);
