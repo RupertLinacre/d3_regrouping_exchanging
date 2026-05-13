@@ -1,4 +1,14 @@
-import { SVG_WIDTH, SVG_HEIGHT, MARGIN, COLUMN_LABELS, COLUMN_GAP, COLORS } from './constants.js?v=20260513e';
+import {
+  SVG_WIDTH,
+  SVG_HEIGHT,
+  MARGIN,
+  COLUMN_LABELS,
+  COLUMN_GAP,
+  COLORS,
+  BLOCK_ROW_HEIGHT,
+  COIN_ROW_GAP,
+  COIN_ROW_HEIGHT
+} from './constants.js?v=20260513f';
 
 export function setupSVG() {
   const svg = d3.select("#visualization")
@@ -7,7 +17,9 @@ export function setupSVG() {
     .attr("height", SVG_HEIGHT);
 
   const chartWidth = SVG_WIDTH - MARGIN.left - MARGIN.right;
-  const chartHeight = SVG_HEIGHT - MARGIN.top - MARGIN.bottom;
+  const chartHeight = BLOCK_ROW_HEIGHT;
+  const coinRowY = chartHeight + COIN_ROW_GAP;
+  const coinRowHeight = COIN_ROW_HEIGHT;
 
   const g = svg.append("g")
     .attr("transform", `translate(${MARGIN.left},${MARGIN.top})`);
@@ -27,6 +39,18 @@ export function setupSVG() {
       .attr("stroke", COLORS.COLUMN_BORDER);
   });
 
+  COLUMN_LABELS.forEach((label, i) => {
+    const xPos = i * (columnWidth + COLUMN_GAP);
+    g.append("rect")
+      .attr("class", `coin-bg coin-${label.toLowerCase()}`)
+      .attr("x", xPos)
+      .attr("y", coinRowY)
+      .attr("width", columnWidth)
+      .attr("height", coinRowHeight)
+      .attr("fill", COLORS.COLUMN_BG)
+      .attr("stroke", COLORS.COLUMN_BORDER);
+  });
+
   // Placeholder for column text info
 
   COLUMN_LABELS.forEach((label, i) => {
@@ -38,8 +62,10 @@ export function setupSVG() {
 
   // Add a group for the sum equation display
   g.append("g").attr("class", "sum-equation-group");
+  const coinG = g.append("g").attr("class", "coin-token-group");
 
-  addTransferControls(g, columnWidth, chartHeight);
+  addTransferControls(g, columnWidth, chartHeight / 2, 'blocks');
+  addTransferControls(g, columnWidth, coinRowY + coinRowHeight / 2, 'coins');
 
   // Add right-click listeners to column backgrounds for composition
   g.select(".column-bg.column-ones")
@@ -60,10 +86,10 @@ export function setupSVG() {
       }
     });
 
-  return { svg, g, chartWidth, chartHeight, columnWidth };
+  return { svg, g, coinG, chartWidth, chartHeight, columnWidth, coinRowY, coinRowHeight };
 }
 
-function addTransferControls(g, columnWidth, chartHeight) {
+function addTransferControls(g, columnWidth, centerY, rowName) {
   const boundaries = [
     {
       x: columnWidth + COLUMN_GAP / 2,
@@ -80,24 +106,26 @@ function addTransferControls(g, columnWidth, chartHeight) {
   boundaries.forEach(boundary => {
     addTransferButton(g, {
       x: boundary.x,
-      y: chartHeight / 2 - 22,
+      y: centerY - 22,
       label: '➡️',
-      action: boundary.forwardAction
+      action: boundary.forwardAction,
+      rowName
     });
 
     addTransferButton(g, {
       x: boundary.x,
-      y: chartHeight / 2 + 22,
+      y: centerY + 22,
       label: '⬅️',
-      action: boundary.backwardAction
+      action: boundary.backwardAction,
+      rowName
     });
   });
 }
 
-function addTransferButton(g, { x, y, label, action }) {
+function addTransferButton(g, { x, y, label, action, rowName }) {
   const buttonSize = 34;
   const button = g.append("g")
-    .attr("class", `transfer-button transfer-${action}`)
+    .attr("class", `transfer-button transfer-button-${rowName} transfer-${action}`)
     .attr("transform", `translate(${x - buttonSize / 2}, ${y - buttonSize / 2})`)
     .style("cursor", "pointer")
     .attr("role", "button")

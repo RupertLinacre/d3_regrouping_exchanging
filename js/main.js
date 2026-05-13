@@ -1,9 +1,11 @@
-import { setupSVG } from './svgSetup.js?v=20260513e';
+import { setupSVG } from './svgSetup.js?v=20260513l';
 import { initializeState, getCurrentState, decomposeFlat, decomposeRod, composeUnitsToRod, composeRodsToFlat } from './stateManager.js';
-import { renderSquares } from './renderer.js?v=20260513e';
-import { calculateLayout } from './layoutEngine.js?v=20260513e';
-import { updateTextLabels } from './textDisplay.js?v=20260513e';
-import { COLUMN_GAP } from './constants.js?v=20260513e';
+import { renderSquares } from './renderer.js?v=20260513f';
+import { renderCoins } from './coinRenderer.js?v=20260513h';
+import { calculateLayout } from './layoutEngine.js?v=20260513f';
+import { calculateCoinLayout } from './coinLayoutEngine.js?v=20260513j';
+import { updateTextLabels } from './textDisplay.js?v=20260513k';
+import { COLUMN_GAP } from './constants.js?v=20260513h';
 
 
 const svgContext = setupSVG();
@@ -29,6 +31,7 @@ function updateVisualization(options = {}) {
 
   calculateLayout(squaresData, svgContext.columnWidth, svgContext.chartHeight, onesColumnX);
   renderSquares(svgContext.g, squaresData, options);
+  renderCoins(svgContext.coinG, calculateCoinLayout(squaresData, svgContext));
   updateTextLabels(squaresData, svgContext, currentNumber);
 }
 

@@ -1,4 +1,4 @@
-import { UNIT_SIZE, LAYOUT_PADDING, COLUMN_GAP } from './constants.js?v=20260513e';
+import { UNIT_SIZE, LAYOUT_PADDING, COLUMN_GAP } from './constants.js?v=20260513f';
 
 export function calculateLayout(unitSquaresData, columnWidth, chartHeight, onesColumnXOffset) {
   const hundredsColumnX = 0;

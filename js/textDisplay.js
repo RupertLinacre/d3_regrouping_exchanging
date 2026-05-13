@@ -1,5 +1,5 @@
 import { digitToWord, expandedValue } from './utils.js';
-import { COLORS, COLUMN_GAP } from './constants.js?v=20260513e';
+import { COLORS, COLUMN_GAP } from './constants.js?v=20260513f';
 
 export function updateTextLabels(allUnitSquares, svgContext, totalNumber) {
   // Count conceptual groups (this part remains the same)
@@ -69,7 +69,7 @@ function updateSumDisplay(counts, totalNumber, svgContext) {
   const sumGroup = svgContext.g.select(".sum-equation-group");
   sumGroup.selectAll('text').remove(); // Clear previous sum text
 
-  const { columnWidth } = svgContext;
+  const { columnWidth, chartWidth } = svgContext;
 
   const expandedH = counts.flats * 100;
   const expandedT = counts.rods * 10;
@@ -83,8 +83,8 @@ function updateSumDisplay(counts, totalNumber, svgContext) {
   const xTensVal = columnWidth + COLUMN_GAP + columnWidth / 2;
   const xPlus2 = columnWidth + COLUMN_GAP + columnWidth + COLUMN_GAP / 2;
   const xOnesVal = columnWidth + COLUMN_GAP + columnWidth + COLUMN_GAP + columnWidth / 2;
-  const xEquals = xOnesVal + (columnWidth / 2) + (COLUMN_GAP / 2);
-  const xTotal = xEquals + (COLUMN_GAP / 2) + 60;
+  const xEquals = chartWidth + 8;
+  const xTotal = xEquals + 36;
 
   const addText = (x, textContent, anchor = 'middle') => {
     sumGroup.append('text')

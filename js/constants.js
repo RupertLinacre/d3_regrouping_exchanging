@@ -1,10 +1,15 @@
 export const SVG_WIDTH = 1400; // Further increased width to prevent sum equation clipping
-export const SVG_HEIGHT = 630;
+export const SVG_HEIGHT = 1180;
 export const MARGIN = { top: 90, right: 150, bottom: 20, left: 20 };
 export const COLUMN_LABELS = ["Hundreds", "Tens", "Ones"];
 export const COLUMN_GAP = 46;
 export const UNIT_SIZE = 12;
 export const LAYOUT_PADDING = 8;
+export const BLOCK_ROW_HEIGHT = 520;
+export const COIN_ROW_GAP = 36;
+export const COIN_ROW_HEIGHT = 520;
+export const COIN_SIZE_MAX = 30;
+export const COIN_SIZE_MIN = 12;
 export const ANIMATION_DURATION = 800;
 
 // Stagger delay for regrouping animations (ms)
@@ -23,4 +28,10 @@ export const COLORS = {
   TEXT_SECONDARY: "#6C757D", // Medium gray for expanded values
   TEXT_TERTIARY: "#ADB5BD", // Light gray for phrases
   HIGHLIGHT_HOVER: "#20B2AA" // Slightly brighter green for hover states
+};
+
+export const COIN_IMAGES = {
+  pound: ["coin_images/1-pound.png"],
+  tenPence: ["coin_images/10p.png"],
+  penny: ["coin_images/1p.png"]
 };
